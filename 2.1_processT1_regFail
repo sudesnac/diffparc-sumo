@@ -1,0 +1,66 @@
+#!/bin/bash
+
+function usage {
+ echo ""
+ echo "Usage: ${0##*/}  <working dir> <init subj> <subjids..>"
+ echo "" 
+ 
+}
+
+if [ "$#" -lt 3 ]
+then
+ usage
+ exit 1
+fi
+
+
+#look for atlases in <scripts_dir>/atlases
+execpath=`dirname $0`
+execpath=`realpath $execpath`
+. $execpath/000_global_settings.cfg
+
+work_dir=$1
+
+init_subj=$2
+
+shift 2
+
+pushd $work_dir
+
+for subj in $@
+do
+#skull-strip and check results
+preprocT1 $subj
+
+#copy atlases to output folder
+for atlas in `ls -d $in_atlas_dir/*`
+do
+ atlas_name=${atlas##*/}
+ cp -Rv $atlas .
+ 
+ #register atlas and subject t1
+ reg_intersubj_aladin  t1 $atlas_name $subj -i $init_subj
+ reg_bspline_f3d t1 $atlas_name $subj
+
+ if [ "$legacy_dwi_proc" = 1 ]
+ then 
+  reg_intrasubj_aladin  t1 $legacy_dwi_type $subj -r
+ fi
+
+ for label in `ls -d $atlas_name/labels/t1/*`
+ do
+   label_name=${label##*/}
+    
+   propLabels_reg_bspline_f3d t1 $label_name $atlas_name $subj
+  if [ "$legacy_dwi_proc" = 1 ]
+   then
+     propLabels_compose_reg_bspline_f3d_coreg_rigid_aladin t1 t1 $legacy_dwi_type $label_name $atlas_name $subj
+   fi
+
+ done #label
+
+done #atlas
+
+done #subj
+
+popd

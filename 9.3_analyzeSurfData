@@ -1,0 +1,5 @@
+#!/bin/bash
+
+subjlist=$1
+
+runMatlabCmd  analyzeSurfData "'$subjlist'"

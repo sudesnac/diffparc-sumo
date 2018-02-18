@@ -1,0 +1,40 @@
+#!/bin/bash
+
+if [ "$#" -lt 2 ]
+then
+	 echo "Usage: $0 <work_dir> <subjlist>"
+	 exit 1
+fi
+
+
+#look for atlases in <scripts_dir>/atlases
+execpath=`dirname $0`
+execpath=`realpath $execpath`
+
+work_dir=$1
+subjlist=$2
+shift 2
+
+parcellate=striatum
+
+. $execpath/${parcellate}.cfg
+
+
+subjlist=`realpath $subjlist`
+
+pushd $work_dir
+
+out_csv=${parcellation_name}.maxProbDiffusionParcVolume.byHemi.csv
+
+if [ "$legacy_dwi_proc" = 1 ]
+then
+track_dir=$legacy_dwi_path/bedpost.${parcellation_name}/probtrack
+else
+track_dir=bedpost.${parcellation_name}/probtrack
+fi
+
+
+computeSegVolume StriatumTargets_Hemi.csv $track_dir/$atlas/diffusion_parcellation.masked.nii.gz  $1 > $out_csv
+popd
+
+exit 0

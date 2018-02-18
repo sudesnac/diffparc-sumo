@@ -1,0 +1,126 @@
+#!/bin/bash
+
+
+if [ -f $1 ]
+then
+ subjlist=`cat $1`
+else
+ subjlist=$1
+fi
+
+cfg_file=$PIPELINE_CFG_DIR/surf_disp/penny_striatum/striatum_affine.cfg
+
+source $cfg_file
+for subj in $subjlist
+do
+
+
+  surfdisp_dir=surfdisp_singlestruct_$surfdisp_name
+
+  subj_dir=$subj
+  out_tract_dir=$subj_dir/dwi/uncorrected_denoise_unring_eddy/vertexTract
+
+
+
+  mkdir -p $out_tract_dir
+
+
+targetmasks=$subj_dir/dwi/uncorrected_denoise_unring_eddy/bedpost.striatum_withRostralMotor/targets.txt
+brainmask=$subj_dir/dwi/uncorrected_denoise_unring_eddy/bedpost.bedpostX/nodif_brain_mask.nii.gz
+brainmask_bin=$subj_dir/dwi/uncorrected_denoise_unring_eddy/bedpost.bedpostX/nodif_brain_mask_bin.nii.gz
+bedpost_samples=$subj_dir/dwi/uncorrected_denoise_unring_eddy/bedpost.bedpostX/merged
+fa=$subj_dir/dwi/uncorrected_denoise_unring_eddy/dti_FA.nii.gz
+
+#read index_list to pull out indices of interest
+#pull out indices of interest
+if [ -n "$template_index_list" ]
+then
+  echo template_index_list defined
+  t_index_list=$template_index_list
+else
+  echo template_index_list not defined, using index_list
+  t_index_list=$index_list
+fi
+
+for line in `cat $t_index_list`
+do
+ 
+ struct=${line%%,*}
+ index=${line##*,}
+
+
+  prop_byu=${surfdisp_dir}/$subj/propSurface_${struct}_nii.byu
+  mni_t1_xfm=$subj/reg/affine_aladin_t1/MNI152_1mm_${subj}/MNI152_1mm_to_${subj}.xfm
+  t1_dti_xfm=$subj/coreg/rigid_aladin_t1_dwi/t1_to_dwi.xfm
+
+  prop_byu_subj_t1=${surfdisp_dir}/$subj/propSurface_${struct}_nii_subj_t1.byu
+  prop_byu_subj_dti=${surfdisp_dir}/$subj/propSurface_${struct}_nii_subj_dti.byu
+  prop_byu_subj_dti_vtk=${surfdisp_dir}/$subj/propSurface_${struct}_nii_subj_dti.vtk
+  prop_byu_subj_dti_gii=${surfdisp_dir}/$subj/propSurface_${struct}_nii_subj_dti.gii
+
+  fslmaths $brainmask -bin $brainmask_bin
+
+
+  # transform surfaces generated from computing surface displacements so that they can be used for probabilistic tractography
+  # transform BYU to subject T1 space
+  runMatlabCmd transformByuLinearXfm "'$prop_byu'" "'$mni_t1_xfm'" "'$prop_byu_subj_t1'"
+
+  # transform BYU from subject T1 space to subject DTI space
+  runMatlabCmd transformByuLinearXfm "'$prop_byu_subj_t1'" "'$t1_dti_xfm'" "'$prop_byu_subj_dti'"
+
+  # convert BYU to VTK
+  ConvertBYUtoVTK $prop_byu_subj_dti $prop_byu_subj_dti_vtk
+
+  # convert VTK to gifti so that it can be used for probabilistic tractography
+  mris_convert $prop_byu_subj_dti_vtk $prop_byu_subj_dti_gii
+
+
+
+#run probtrack
+
+probtrackx2 \
+-x $prop_byu_subj_dti_gii \
+-m $brainmask \
+-s $bedpost_samples \
+--dir=$out_tract_dir \
+--targetmasks=$targetmasks \
+--stop=$targetmasks \
+--forcedir \
+--opd --os2t  --s2tastext \
+--seedref=$fa \
+--omatrix2 \
+--target2=$brainmask_bin \
+-V 1 \
+-l  --onewaycondition -c 0.2 -S 2000 --steplength=0.5 \
+-P 5000 --fibthresh=0.01 --distthresh=0.0 --sampvox=0.0  
+
+#ProbtrackX argument info
+#--------------------------
+#--targetmasks=$targetmasks
+#--stop=$targetmasks #Stop tracking at locations given by this mask file
+#--forcedir # use actual directory for 
+#--opd #Output path distribution
+#--os2t # Output seeds to targets
+#--s2tastext  #Output seed-to-target counts as a text file (default in simple mode)
+#--seedref=$fa  #	Reference vol to define seed space in simple mode - diffusion space assumed if absent  
+#--omatrix2 #Output matrix2 - SeedToLowResMask
+#--target2=$brainmask_bin #Low resolution binary brain mask for storing connectivity distribution in matrix2 mode
+#-V 1 #verbose level 1
+#-l #loopcheck
+#--onewaycondition #Apply waypoint conditions to each half tract separately
+
+#below are defaults, do not need to include?
+#-c 0.2 #curvature threshold  (default)
+#-S 2000 #steps per sample (default)
+#--steplength=0.5  #step length (default)
+#-P 5000  #nsamples (default)
+#--fibthresh=0.01  #Volume fraction before subsidary fibre orientations are considered - default=0.01
+#--distthresh=0.0  #discard samples shorter than this (default 0)
+#--sampvox=0.0 # Sample random points within a sphere with radius x mm from the center of the seed voxels (e.g. --sampvox=0.5, 0.5 mm radius sphere). Default=0
+#--------------------------
+
+
+done #struct
+
+
+done #subj

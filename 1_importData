@@ -1,0 +1,43 @@
+#!/bin/bash
+
+function usage {
+ echo ""
+ echo "Usage: ${0##*/}  <in bids dataset> <working dir>"
+ echo "" 
+ 
+}
+
+if [ "$#" -lt 2 ]
+then
+ usage
+ exit 1
+fi
+
+
+#note: does not overwrite existing files!
+#dependencies: dcm2niix, fsl
+
+in_bids=$1 
+work_dir=$2
+shift 2
+
+in_bids=`realpath $in_bids`
+pushd $work_dir
+
+for subj_dir in `ls -d $in_bids/sub-*`
+do
+
+subj=${subj_dir##*/}
+searchstring_t1w=*T1w.nii*
+
+N_t1w=`eval ls $in_bids/$subj/anat/${subj}${searchstring_t1w} | wc -l`
+in_t1w=`eval ls $in_bids/$subj/anat/${subj}${searchstring_t1w} | head -n 1`
+
+echo Found $N_t1w matching T1w, using first found: $in_t1w
+
+echo importT1 $in_t1w $subj
+importT1 $in_t1w $subj
+
+done
+
+popd
