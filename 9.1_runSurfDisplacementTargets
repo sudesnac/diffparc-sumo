@@ -9,6 +9,7 @@ else
 fi
 
 
+source $parcellate_cfg 
 
 for subj in $subjlist
 do

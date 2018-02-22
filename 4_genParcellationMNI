@@ -15,7 +15,6 @@ fi
 
 execpath=`dirname $0`
 execpath=`realpath $execpath`
-. $execpath/000_global_settings.cfg
 
 
 work_dir=$1
@@ -42,7 +41,7 @@ do
   processBedpostParcellateSeedfromPrepDWI $in_bedpost_root $parcellate_cfg $subj
  fi
 
-
+exit 1
 
 #post-processing to move to MNI space and extract left/right sides
 interp_opt="-LIN"

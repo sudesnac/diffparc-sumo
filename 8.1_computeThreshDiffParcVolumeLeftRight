@@ -10,7 +10,6 @@ fi
 #look for atlases in <scripts_dir>/atlases
 execpath=`dirname $0`
 execpath=`realpath $execpath`
-. $execpath/000_global_settings.cfg
 
 work_dir=$1
 subjlist=$2

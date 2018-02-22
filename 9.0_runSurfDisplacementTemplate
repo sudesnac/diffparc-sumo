@@ -1,5 +1,6 @@
 #!/bin/bash
 
-computeSurfaceDisplacementsSingleStructure template_placeholder  $PIPELINE_CFG_DIR/surf_disp/penny_striatum/striatum_affine.cfg -N -t
+
+computeSurfaceDisplacementsSingleStructure template_placeholder  $parcellate_cfg -N -t
 
 exit 0

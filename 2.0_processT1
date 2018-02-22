@@ -22,7 +22,6 @@ fi
 
 execpath=`dirname $0`
 execpath=`realpath $execpath`
-. $execpath/000_global_settings.cfg
 
 work_dir=$1
 shift 1
@@ -39,6 +38,7 @@ echo preprocT1 $subj
 preprocT1 $subj
 fi
 
+echo in_atlas_dir: $in_atlas_dir
 #copy atlases to output folder
 for atlas in `ls -d $in_atlas_dir/*`
 do
@@ -61,7 +61,7 @@ do
  reg_intersubj_aladin  t1 $atlas_name $subj 
  reg_bspline_f3d t1 $atlas_name $subj
 
- 
+ legacy_dwi_proc $legacy_dwi_proc 
  if [ "$legacy_dwi_proc" = 1 ]
  then 
   reg_intrasubj_aladin  t1 $legacy_dwi_type $subj -r

@@ -19,31 +19,43 @@ execpath=`dirname $0`
 execpath=`realpath $execpath`
 
 
+in_atlas_dir=$execpath/atlases
+
 matching_dwi=
 participant_label=
 matching_T1w=
 n_cpus=8
 reg_init_subj=
-global_config_file=
+parcellate_type=striatum_cortical
+in_prepdwi_dir=
+
+legacy_dwi_proc=0
+legacy_dwi_type=dwi_eddy
+legacy_dwi_path=dwi/uncorrected_denoise_unring_eddy
 
 
 if [ "$#" -lt 3 ]
 then
- echo "Usage: diffparcellate bids_dir output_dir {participant1,group1,participant2,participant3,group2} <optional arguments>"
- echo "          [--participant_label PARTICIPANT_LABEL [PARTICIPANT_LABEL...]]"
- echo "          [--matching_dwi MATCHING_PATTERN"
- echo "          [--matching_T1w MATCHING_STRING"
- echo "          [--reg-init-participant PARTICIPANT_LABEL"
- echo "          [--global-config-file CONFIG_FILE  (required)"
- echo "          [--n_cpus] NCPUS (for bedpost, default: 8) "
  echo ""
-
-#add options for:
-#  bedpost folder
-#  parcellation type (vtasn, striatum)
-
-#remove options for:
-#  global config file
+ echo "Usage: diffparcellate bids_dir output_dir {participant1,group1,participant2,participant3,group2} <optional arguments>"
+ echo " Required arguments:"
+ echo "          [--in_prepdwi_dir PREPDWI_DIR]" 
+ echo " Optional arguments:"
+ echo "          [--participant_label PARTICIPANT_LABEL [PARTICIPANT_LABEL...]]"
+# echo "          [--matching_dwi MATCHING_PATTERN"
+ echo "          [--matching_T1w MATCHING_STRING"
+ echo "          [--reg_init_participant PARTICIPANT_LABEL"
+# echo "          [--n_cpus] NCPUS (for bedpost, default: 8) "
+ echo "          [--enable_legacy_dwi (for backwards compatibility of older surf_striatum processed data)"
+ echo "          [--parcellate_type PARCELLATE_TYPE (default: striatum_cortical; can alternatively specify config file) "
+ echo ""
+ echo "         Available parcellate types:"
+ for parc in `ls $execpath/parcellate.*.cfg`
+ do
+     parc=${parc##*/parcellate.}
+     parc=${parc%%.cfg}
+     echo "         $parc"
+ done
 
 
 
@@ -91,41 +103,62 @@ while :; do
           ;;
 
 
+           --enable_legacy_dwi )       # takes an option argument; ensure it has been specified.
+            legacy_dwi_proc=1;;
+#-------------------
 
-           --global-config-file )       # takes an option argument; ensure it has been specified.
+           --parcellate_type )       # takes an option argument; ensure it has been specified.
           if [ "$2" ]; then
-                global_config_file=$2
+                parcellate_type=$2
                   shift
 	      else
-              die 'error: "--global-config-file" requires a non-empty option argument.'
+              die 'error: "--parcellate_type" requires a non-empty option argument.'
             fi
               ;;
-     --global-config-file=?*)
-          global_config_file=${1#*=} # delete everything up to "=" and assign the remainder.
+     --parcellate_type=?*)
+          parcellate_type=${1#*=} # delete everything up to "=" and assign the remainder.
             ;;
-          --global-config-file=)         # handle the case of an empty --participant=
-         die 'error: "--global-config-file" requires a non-empty option argument.'
+          --parcellate_type=)         # handle the case of an empty --participant=
+         die 'error: "--parcellate_type" requires a non-empty option argument.'
           ;;
 
 
 
+#-------------------
 
-           --reg-init-participant )       # takes an option argument; ensure it has been specified.
+           --in_prepdwi_dir )       # takes an option argument; ensure it has been specified.
+          if [ "$2" ]; then
+                in_prepdwi_dir=$2
+                  shift
+	      else
+              die 'error: "--in_prepdwi_dir" requires a non-empty option argument.'
+            fi
+              ;;
+     --in_prepdwi_dir=?*)
+          in_prepdwi_dir=${1#*=} # delete everything up to "=" and assign the remainder.
+            ;;
+          --in_prepdwi_dir=)         # handle the case of an empty --participant=
+         die 'error: "--in_prepdwi_dir" requires a non-empty option argument.'
+          ;;
+#-------------------
+
+           --reg_init_participant )       # takes an option argument; ensure it has been specified.
           if [ "$2" ]; then
                 reg_init_subj=$2
                   shift
 	      else
-              die 'error: "--reg-init-participant" requires a non-empty option argument.'
+              die 'error: "--reg_init_participant" requires a non-empty option argument.'
             fi
               ;;
-     --reg-init-participant=?*)
+     --reg_init_participant=?*)
           reg_init_subj=${1#*=} # delete everything up to "=" and assign the remainder.
             ;;
-          --reg-init-participant=)         # handle the case of an empty --participant=
-         die 'error: "--reg-init-participant" requires a non-empty option argument.'
+          --reg_init_participant=)         # handle the case of an empty --participant=
+         die 'error: "--reg_init_participant" requires a non-empty option argument.'
           ;;
 
       
+#-------------------
       
       
       --matching_dwi )       # takes an option argument; ensure it has been specified.
@@ -172,26 +205,35 @@ while :; do
 shift $((OPTIND-1))
 
 
-echo matching_dwi=$matching_dwi
-echo participant_label=$participant_label
-
 participants=$in_bids/participants.tsv
 work_folder=$out_folder/work
 derivatives=$out_folder #bids derivatives
 
-if [ ! -n "$global_config_file" ]
+if [ -e $execpath/parcellate.$parcellate_type.cfg ]
 then
-    echo "ERROR: --global-config-file MUST be set!"
-    exit 1
-else
-    if [ -e $global_config_file ]
-    then
-        source $global_config_file
-    else
-    echo "ERROR: --global-config-file $global_config_file does not exist!"
-    exit 1
-    fi
+     parcellate_cfg=$execpath/parcellate.$parcellate_type.cfg 
+ elif [ -e $parcellate_type ]
+  then 
+         parcellate_cfg=$parcellate_type
+     else
+
+ echo "ERROR: --parcellate_type $parcellate_type does not exist!"
+ exit 1
 fi
+
+
+if [ ! -n "$in_prepdwi_dir" ]
+then
+    echo "ERROR: --in_prepdwi_dir must be specified!"
+    exit 1
+fi
+
+if [ ! -e $in_prepdwi_dir ]
+then
+    echo "ERROR: in_prepdwi_dir $in_prepdwi_dir does not exist!"
+	exit 1
+fi
+
 
 if [ -e $in_bids ]
 then
@@ -223,7 +265,7 @@ subjlist=`tail -n +2 $participants | awk '{print $1}'`
 fi
 
 
-
+export legacy_dwi_proc in_atlas_dir parcellate_cfg
 
 
 mkdir -p $work_folder $derivatives
@@ -269,7 +311,7 @@ then
         subj=`fixsubj $subj`
         echo $subj >> $qclist
     done
-    3_genQC $work_folder $qclist
+    $execpath/3_genQC $work_folder $qclist
 
 
 elif [ "$analysis_level" = "participant2" ]
@@ -288,7 +330,7 @@ then
   echo $execpath/2.1_processT1_regFail $work_folder $reg_init_subj $subj
   $execpath/2.1_processT1_regFail $work_folder $reg_init_subj $subj
   else
-    echo "participant3 requires --reg-init-participant PARTICIPANT_LABEL to be defined"
+    echo "participant3 requires --reg_init_participant PARTICIPANT_LABEL to be defined"
     exit 1
   fi
   
@@ -300,14 +342,18 @@ then
  echo " running participant3 level analysis"
  echo "  probabilistic tracking and seed parcellation"
 
-  #try to locate prepdwi derivatives from bids input folder, use most recent
-  bedpost_root=`ls -dt $in_bids/derivatives/prepdwi*/bedpost | head -n 1`
+  bedpost_root=$in_prepdwi_dir/bedpost
+ # if [ ! -e $bedpost_root ]
+  #then
+ #  #try to locate prepdwi derivatives from bids input folder, use most recent
+ #  bedpost_root=`ls -dt $in_bids/derivatives/prepdwi*/bedpost | head -n 1`
+   
 
-  if [ ! -e  "$bedpost_root" ]
-  then
-     echo "Cannot find bedpost folder in $in_bids/derivatives/prepdwi*, required for participant3 analysis"
-     exit 1
-  fi
+ # if [ ! -e  "$bedpost_root" ]
+ # then
+ #    echo "Cannot find bedpost folder in $in_bids/derivatives/prepdwi*, required for participant3 analysis"
+ #    exit 1
+ # fi
 
 
 
@@ -343,6 +389,40 @@ then
     $execpath/8.1_computeThreshDiffParcVolumeLeftRight $work_folder $list
     echo $execpath/8.3_computeMaxProbDiffParcVolumeLeftRight $work_folder $list
     $execpath/8.3_computeMaxProbDiffParcVolumeLeftRight $work_folder $list
+
+ 
+ elif [ "$analysis_level" = "participant4" ]
+ then
+
+     #first prep template (quick)
+     if $(mkdir $somethingtemplatedir)
+     then
+
+        echo computeSurfaceDisplacementsSingleStructure template_placeholder  $parcellate_cfg -N -t
+    else
+     sleep 300 #shouldn't take longer than 5 min
+
+     fi
+
+    echo "analysis level participant4, computing surfdisp target processing"
+     for subj in $subjlist 
+     do
+
+      #add on sub- if not exists
+      subj=`fixsubj $subj`
+
+      propLabels_reg_bspline_f3d t1 $labelgroup_prob $atlas  $subj -L
+      propLabels_backwards_intersubj_aladin t1  ${labelgroup_prob}_bspline_f3d_$atlas  $atlas $subj -L
+      computeSurfaceDisplacementsSingleStructure $subj $parcellate_cfg  -N
+
+     done
+
+
+ elif [ "$analysis_level" = "group3" ]
+ then
+
+    echo "analysis level group3, computing surf-based analysis"
+
 
 
 
