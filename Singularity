@@ -1,5 +1,5 @@
 Bootstrap: shub
-From: akhanf/vasst-dev:v0.0.4c
+From: akhanf/vasst-dev:v0.0.4d
 
 #########
 %setup
