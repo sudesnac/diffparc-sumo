@@ -37,7 +37,8 @@ legacy_dwi_path=dwi/uncorrected_denoise_unring_eddy
 if [ "$#" -lt 3 ]
 then
  echo ""
- echo "Usage: diffparcellate bids_dir output_dir {participant1,group1,participant2,participant3,group2} <optional arguments>"
+ echo "Usage: diffparcellate bids_dir output_dir {participant1,group1,participant2,group2,participant3,group3} <optional arguments>"
+ echo ""
  echo " Required arguments:"
  echo "          [--in_prepdwi_dir PREPDWI_DIR]" 
  echo " Optional arguments:"
@@ -46,9 +47,18 @@ then
  echo "          [--matching_T1w MATCHING_STRING"
  echo "          [--reg_init_participant PARTICIPANT_LABEL"
 # echo "          [--n_cpus] NCPUS (for bedpost, default: 8) "
- echo "          [--enable_legacy_dwi (for backwards compatibility of older surf_striatum processed data)"
+# echo "          [--enable_legacy_dwi (for backwards compatibility of older surf_striatum processed data)"
  echo "          [--parcellate_type PARCELLATE_TYPE (default: striatum_cortical; can alternatively specify config file) "
  echo ""
+ echo "	Analysis levels:"
+ echo "		participant1: T1 pre-processing and atlas registration"
+ echo "		group1: generate QC for masking, linear and non-linear registration"
+ echo "		participant2: volume-based tractography parcellation"
+ echo "		group2: generate csv files for parcellation volume stats"
+ echo "		participant3: surface-based displacement morphometry (LDDMM)"
+ echo "		participant4: surface-based tractography parcellation"
+ echo "		group3: generate surface-based analysis stats and results"
+
  echo "         Available parcellate types:"
  for parc in `ls $execpath/parcellate.*.cfg`
  do
@@ -291,10 +301,18 @@ then
   pushd $work_folder
  echo importT1 $in_t1w $subj
   importT1 $in_t1w $subj
- 
   popd
- echo $execpath/2.0_processT1 $work_folder $subj
- $execpath/2.0_processT1 $work_folder $subj
+
+  if [ -n "$reg_init_subj" ]
+  then
+	echo $execpath/2.1_processT1_regFail $work_folder $reg_init_subj $subj
+	$execpath/2.1_processT1_regFail $work_folder $reg_init_subj $subj
+  else
+ 	echo $execpath/2.0_processT1 $work_folder $subj
+	 $execpath/2.0_processT1 $work_folder $subj
+  fi
+
+
  done
 
  elif [ "$analysis_level" = "group1" ]
@@ -303,7 +321,8 @@ then
     echo "generate preproc QC reports"
 
     #need to make a subjlist for this command 
-    qclist=$work_folder/subjects
+    mkdir -p $work_folder/etc
+    qclist=$work_folder/etc/subjects
     rm -f $qclist
     touch $qclist
     for subj in $subjlist
@@ -314,32 +333,10 @@ then
     $execpath/3_genQC $work_folder $qclist
 
 
+
 elif [ "$analysis_level" = "participant2" ]
 then
  echo " running participant2 level analysis"
- echo "  reprocessing for failed intersubj reg" 
-
- for subj in $subjlist 
- do
-
- #add on sub- if not exists
-  subj=`fixsubj $subj`
-
-  if [ -n "$reg_init_subj" ]
-  then
-  echo $execpath/2.1_processT1_regFail $work_folder $reg_init_subj $subj
-  $execpath/2.1_processT1_regFail $work_folder $reg_init_subj $subj
-  else
-    echo "participant3 requires --reg_init_participant PARTICIPANT_LABEL to be defined"
-    exit 1
-  fi
-  
- done
-
-
-elif [ "$analysis_level" = "participant3" ]
-then
- echo " running participant3 level analysis"
  echo "  probabilistic tracking and seed parcellation"
 
   bedpost_root=$in_prepdwi_dir/bedpost
@@ -366,6 +363,7 @@ then
   if [ -n "$bedpost_root" ]
   then
 
+   echo $execpath/4_genParcellationMNI $work_folder $bedpost_root $subj
    $execpath/4_genParcellationMNI $work_folder $bedpost_root $subj
   fi
 
@@ -391,31 +389,45 @@ then
     $execpath/8.3_computeMaxProbDiffParcVolumeLeftRight $work_folder $list
 
  
- elif [ "$analysis_level" = "participant4" ]
+ elif [ "$analysis_level" = "participant3" ]
  then
 
-     #first prep template (quick)
-     if $(mkdir $somethingtemplatedir)
+    echo "analysis level participant3, computing surfdisp target processing"
+     pushd $work_folder
+
+     #first prep template (if not done yet, run it once, uses mkdir lock for synchronization, and wait time of 5 minutes)
+     template_surf=etc/run_template
+     if [ ! -e $template_surf ]
      then
 
-        echo computeSurfaceDisplacementsSingleStructure template_placeholder  $parcellate_cfg -N -t
-    else
-     sleep 300 #shouldn't take longer than 5 min
-
+     if $(mkdir -p $template_surf)
+     then
+         echo computeSurfaceDisplacementsSingleStructure template_placeholder  $parcellate_cfg -N -t
+         computeSurfaceDisplacementsSingleStructure template_placeholder  $parcellate_cfg -N -t
+    
+	else
+	    sleep 300 #shouldn't take longer than 5 min
+     fi
      fi
 
-    echo "analysis level participant4, computing surfdisp target processing"
      for subj in $subjlist 
      do
 
       #add on sub- if not exists
       subj=`fixsubj $subj`
 
+      source $parcellate_cfg
+
+      echo propLabels_reg_bspline_f3d t1 $labelgroup_prob $atlas  $subj -L
       propLabels_reg_bspline_f3d t1 $labelgroup_prob $atlas  $subj -L
+      echo propLabels_backwards_intersubj_aladin t1  ${labelgroup_prob}_bspline_f3d_$atlas  $atlas $subj -L
       propLabels_backwards_intersubj_aladin t1  ${labelgroup_prob}_bspline_f3d_$atlas  $atlas $subj -L
+      echo computeSurfaceDisplacementsSingleStructure $subj $parcellate_cfg  -N
       computeSurfaceDisplacementsSingleStructure $subj $parcellate_cfg  -N
 
      done
+     
+     popd
 
 
  elif [ "$analysis_level" = "group3" ]
@@ -423,7 +435,19 @@ then
 
     echo "analysis level group3, computing surf-based analysis"
 
+    mkdir -p $work_folder/etc
+    list=$work_folder/etc/subjects.$analysis_level
+    rm -f $qclist
+    touch $qclist
+    for subj in $subjlist
+    do
+        subj=`fixsubj $subj`
+        echo $subj >> $list
+    done
 
+    pushd $work_folder      
+    runMatlabCmd  analyzeSurfData "'$list'"
+    popd
 
 
  else
