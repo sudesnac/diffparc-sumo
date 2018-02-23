@@ -8,7 +8,7 @@ data_dir='work_pipeline';
 
 
 %surfdisp_name=striatum_unbiasedAvg_affine
-surfdisp_dir=sprintf('%s/surfdisp_%s',data_dir,surfdisp_name);
+surfdisp_dir=sprintf('%s/surfdisp_singlestruct_%s',data_dir,surfdisp_name);
 
 template_byu=sprintf('%s/template/seed_nii.byu',surfdisp_dir);
 

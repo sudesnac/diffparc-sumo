@@ -275,12 +275,30 @@ subjlist=`tail -n +2 $participants | awk '{print $1}'`
 fi
 
 
-export legacy_dwi_proc in_atlas_dir parcellate_cfg
+
 
 
 mkdir -p $work_folder $derivatives
+work_folder=`realpath $work_folder`
+
+
+#surf disp requires this (can edit later to build into that and remove this..)
+index_list=$work_folder/etc/surfdisp_seed.csv
+if [ ! -e $index_list ]
+then
+  if $(mkdir -p $work_folder/etc/lock_index)
+  then
+	echo "seed,0" > $index_list
+	rmdir $work_folder/etc/lock_index
+  fi
+ fi
+index_list=`realpath $index_list`
+
+#exports for called scripts
+export legacy_dwi_proc in_atlas_dir parcellate_cfg index_list
 
 echo $participants
+	
 
 if [ "$analysis_level" = "participant1" ]
 then
@@ -339,7 +357,7 @@ then
  echo " running participant2 level analysis"
  echo "  probabilistic tracking and seed parcellation"
 
-  bedpost_root=$in_prepdwi_dir/bedpost
+  bedpost_root=`realpath $in_prepdwi_dir/bedpost`
  # if [ ! -e $bedpost_root ]
   #then
  #  #try to locate prepdwi derivatives from bids input folder, use most recent
@@ -435,7 +453,7 @@ then
 
     echo "analysis level participant4, computing surface-based tractography"
 
-    bedpost_root=$in_prepdwi_dir/bedpost
+    bedpost_root=`realpath $in_prepdwi_dir/bedpost`
      for subj in $subjlist 
      do
 

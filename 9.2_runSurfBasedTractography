@@ -29,7 +29,7 @@ for subj in $@
 do
 
 
-  surfdisp_dir=surfdisp_$surfdisp_name
+  surfdisp_dir=surfdisp_singlestruct_$surfdisp_name
 
   subj_dir=$subj
   parc_dir=$subj_dir/bedpost.$parcellation_name
