@@ -88,9 +88,6 @@ for s=1:length(subjects)
     
     conn=importdata(conn_matrix_txt);
    
-    if(size(conn,2))==8
-        conn=conn(:,1:(end-1));%strip off last col (all_segs target)
-    end
     
     [maxval,maxlabel]=max(conn,[],2);
     
@@ -225,9 +222,6 @@ for s=1:length(subjects)
     conn_matrix_txt=sprintf('%s/%s/dwi/uncorrected_denoise_unring_eddy/vertexTract/matrix_seeds_to_all_targets',data_dir,subj);
     
     conn=importdata(conn_matrix_txt);
-    if(size(conn,2))==8
-        conn=conn(:,1:(end-1));%strip off last col (all_segs target)
-    end
     
     [maxval,maxlabel]=max(conn,[],2);
     
@@ -263,9 +257,6 @@ for s=1:length(subjects)
     %get seeds to targets
     conn_matrix_txt=sprintf('%s/%s/dwi/uncorrected_denoise_unring_eddy/vertexTract/matrix_seeds_to_all_targets',data_dir,subj);
     conn=importdata(conn_matrix_txt);
-    if(size(conn,2))==8
-        conn=conn(:,1:(end-1));%strip off 1st col (all_segs target)
-    end
     %get T1-based surf displacement data
     surfdisp_txt=sprintf('%s/%s/dstriatum.surf_inout.txt',surfdisp_dir,subj);
     inout=importdata(surfdisp_txt);

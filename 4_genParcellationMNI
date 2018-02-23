@@ -34,14 +34,13 @@ pushd $work_dir
 for subj in $@
 do
 
+
  if [ "$legacy_dwi_proc" = 1 ]
  then
-   processBedpostParcellateSeed uncorrected_denoise_unring_eddy $parcellate_cfg $subj
+    processBedpostParcellateSeed uncorrected_denoise_unring_eddy $parcellate_cfg $subj
  else
   processBedpostParcellateSeedfromPrepDWI $in_bedpost_root $parcellate_cfg $subj
  fi
-
-exit 1
 
 #post-processing to move to MNI space and extract left/right sides
 interp_opt="-LIN"
@@ -89,7 +88,7 @@ subj_t1=$subj_dir/t1/t1.brain.nii.gz
 atlas_t1=${atlas}/t1/t1.brain.nii.gz
 
 
-seed_mask=$subj/$seed_file_t1 
+seed_mask=$subj/$seed_file
 seed_mask_atlas=$out_dir/seedmask.nii.gz
 
 echo reg_resample -flo $seed_mask -res $seed_mask_atlas -aff $linxfm -ref $atlas_t1 -NN 0
