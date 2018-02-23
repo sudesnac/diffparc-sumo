@@ -1,35 +1,51 @@
 #!/bin/bash
 
-
-if [ -f $1 ]
+if [ "$#" -lt 2 ]
 then
- subjlist=`cat $1`
-else
- subjlist=$1
+ echo "Usage $0 <in_work_dir> <in_bedpost_root> <parcellate_cfg> <subjid/list>"
+ echo ""
+ echo "List of standard parcellate_cfgs: "
+ pushd $PIPELINE_CFG_DIR/parcellate > /dev/null
+ ls *
+ popd > /dev/null
+ echo ""
+
+ exit 0
 fi
+work_dir=$1
+in_bedpost_root=$2
+parcellate_cfg=$3
+shift 3
 
-cfg_file=$PIPELINE_CFG_DIR/surf_disp/penny_striatum/striatum_affine.cfg
 
-source $cfg_file
-for subj in $subjlist
+execpath=`dirname $0`
+execpath=`realpath $execpath`
+
+
+source $parcellate_cfg
+
+pushd $work_dir
+for subj in $@
 do
 
 
-  surfdisp_dir=surfdisp_singlestruct_$surfdisp_name
+  surfdisp_dir=surfdisp_$surfdisp_name
 
   subj_dir=$subj
-  out_tract_dir=$subj_dir/dwi/uncorrected_denoise_unring_eddy/vertexTract
+  parc_dir=$subj_dir/bedpost.$parcellation_name
+  bedpost_dir=$in_bedpost_root/$subj
+  out_tract_dir=$parc_dir/vertexTract
 
 
 
   mkdir -p $out_tract_dir
 
 
-targetmasks=$subj_dir/dwi/uncorrected_denoise_unring_eddy/bedpost.striatum_withRostralMotor/targets.txt
-brainmask=$subj_dir/dwi/uncorrected_denoise_unring_eddy/bedpost.bedpostX/nodif_brain_mask.nii.gz
-brainmask_bin=$subj_dir/dwi/uncorrected_denoise_unring_eddy/bedpost.bedpostX/nodif_brain_mask_bin.nii.gz
-bedpost_samples=$subj_dir/dwi/uncorrected_denoise_unring_eddy/bedpost.bedpostX/merged
-fa=$subj_dir/dwi/uncorrected_denoise_unring_eddy/dti_FA.nii.gz
+targetmasks=$parc_dir/targets.txt
+brainmask=$bedpost_dir/nodif_brain_mask.nii.gz
+brainmask_bin=$out_tract_dir/nodif_brain_mask_bin.nii.gz
+bedpost_samples=$bedpost_dir/merged
+seedref=$brainmask
 
 #read index_list to pull out indices of interest
 #pull out indices of interest
@@ -50,10 +66,10 @@ do
 
 
   prop_byu=${surfdisp_dir}/$subj/propSurface_${struct}_nii.byu
-  mni_t1_xfm=$subj/reg/affine_aladin_t1/MNI152_1mm_${subj}/MNI152_1mm_to_${subj}.xfm
-  t1_dti_xfm=$subj/coreg/rigid_aladin_t1_dwi/t1_to_dwi.xfm
+  mni_t1_xfm=$subj/reg/affine_aladin_t1/${atlas}_${subj}/${atlas}_to_${subj}.xfm
+ # t1_dti_xfm=$subj/coreg/rigid_aladin_t1_dwi/t1_to_dwi.xfm
 
-  prop_byu_subj_t1=${surfdisp_dir}/$subj/propSurface_${struct}_nii_subj_t1.byu
+#  prop_byu_subj_t1=${surfdisp_dir}/$subj/propSurface_${struct}_nii_subj_t1.byu
   prop_byu_subj_dti=${surfdisp_dir}/$subj/propSurface_${struct}_nii_subj_dti.byu
   prop_byu_subj_dti_vtk=${surfdisp_dir}/$subj/propSurface_${struct}_nii_subj_dti.vtk
   prop_byu_subj_dti_gii=${surfdisp_dir}/$subj/propSurface_${struct}_nii_subj_dti.gii
@@ -63,16 +79,27 @@ do
 
   # transform surfaces generated from computing surface displacements so that they can be used for probabilistic tractography
   # transform BYU to subject T1 space
-  runMatlabCmd transformByuLinearXfm "'$prop_byu'" "'$mni_t1_xfm'" "'$prop_byu_subj_t1'"
+  runMatlabCmd transformByuLinearXfm "'$prop_byu'" "'$mni_t1_xfm'" "'$prop_byu_subj_dti'"
 
-  # transform BYU from subject T1 space to subject DTI space
-  runMatlabCmd transformByuLinearXfm "'$prop_byu_subj_t1'" "'$t1_dti_xfm'" "'$prop_byu_subj_dti'"
+  # transform BYU from subject T1 space to subject DTI space --- with prepdwi, already in T1
+ # runMatlabCmd transformByuLinearXfm "'$prop_byu_subj_t1'" "'$t1_dti_xfm'" "'$prop_byu_subj_dti'"
 
   # convert BYU to VTK
   ConvertBYUtoVTK $prop_byu_subj_dti $prop_byu_subj_dti_vtk
 
   # convert VTK to gifti so that it can be used for probabilistic tractography
   mris_convert $prop_byu_subj_dti_vtk $prop_byu_subj_dti_gii
+
+
+if [ -n "$avoid_seg" ]
+then
+    if [ -e $avoid_seg ]
+    then
+     probtrack_opts="$probtrack_opts --avoid=$avoid_seg"
+     else
+       echo "WARNING: avoid_seg $avoid_seg defined but not found, not using --avoid"
+     fi
+fi
 
 
 
@@ -87,12 +114,12 @@ probtrackx2 \
 --stop=$targetmasks \
 --forcedir \
 --opd --os2t  --s2tastext \
---seedref=$fa \
+--seedref=$seedref \
 --omatrix2 \
 --target2=$brainmask_bin \
 -V 1 \
 -l  --onewaycondition -c 0.2 -S 2000 --steplength=0.5 \
--P 5000 --fibthresh=0.01 --distthresh=0.0 --sampvox=0.0  
+-P 5000 --fibthresh=0.01 --distthresh=0.0 --sampvox=0.0  $probtrack_opts
 
 #ProbtrackX argument info
 #--------------------------

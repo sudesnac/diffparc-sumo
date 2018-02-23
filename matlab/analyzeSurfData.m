@@ -1,16 +1,16 @@
 %script for analyzing surface-based data -- clean-up in progress
 
-function analyzeSurfData ( subj_list )
+function analyzeSurfData ( subj_list ,surfdisp_name,parcellation_name )
 
 
 %% definitions
 data_dir='work_pipeline';
 
 
+%surfdisp_name=striatum_unbiasedAvg_affine
+surfdisp_dir=sprintf('%s/surfdisp_%s',data_dir,surfdisp_name);
 
-surfdisp_dir=sprintf('%s/surfdisp_singlestruct_striatum_unbiasedAvg_affine',data_dir);
-
-template_byu=sprintf('%s/template/dstriatum_nii.byu',surfdisp_dir);
+template_byu=sprintf('%s/template/seed_nii.byu',surfdisp_dir);
 
 
 
@@ -84,7 +84,7 @@ for s=1:length(subjects)
     
     
     subj=subjects{s};
-    conn_matrix_txt=sprintf('%s/%s/dwi/uncorrected_denoise_unring_eddy/vertexTract/matrix_seeds_to_all_targets',data_dir,subj);
+    conn_matrix_txt=sprintf('%s/%s/bedpost.%s/vertexTract/matrix_seeds_to_all_targets',data_dir,subj,parcellation_name);
     
     conn=importdata(conn_matrix_txt);
    

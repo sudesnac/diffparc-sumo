@@ -37,7 +37,7 @@ legacy_dwi_path=dwi/uncorrected_denoise_unring_eddy
 if [ "$#" -lt 3 ]
 then
  echo ""
- echo "Usage: diffparcellate bids_dir output_dir {participant1,group1,participant2,group2,participant3,group3} <optional arguments>"
+ echo "Usage: diffparcellate bids_dir output_dir {participant1,group1,participant2,group2,participant3,participant4,group3} <optional arguments>"
  echo ""
  echo " Required arguments:"
  echo "          [--in_prepdwi_dir PREPDWI_DIR]" 
@@ -428,6 +428,23 @@ then
      done
      
      popd
+
+
+ elif [ "$analysis_level" = "participant4" ]
+ then
+
+    echo "analysis level participant4, computing surface-based tractography"
+
+     for subj in $subjlist 
+     do
+
+      #add on sub- if not exists
+      subj=`fixsubj $subj`
+
+      $execpath/9.2_runSurfBasedTractography $work_folder $bedpost_root $parcellate_cfg $subj
+
+     done
+     
 
 
  elif [ "$analysis_level" = "group3" ]
