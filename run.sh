@@ -435,12 +435,14 @@ then
 
     echo "analysis level participant4, computing surface-based tractography"
 
+    bedpost_root=$in_prepdwi_dir/bedpost
      for subj in $subjlist 
      do
 
       #add on sub- if not exists
       subj=`fixsubj $subj`
 
+      echo $execpath/9.2_runSurfBasedTractography $work_folder $bedpost_root $parcellate_cfg $subj
       $execpath/9.2_runSurfBasedTractography $work_folder $bedpost_root $parcellate_cfg $subj
 
      done
