@@ -414,18 +414,14 @@ then
      pushd $work_folder
 
      #first prep template (if not done yet, run it once, uses mkdir lock for synchronization, and wait time of 5 minutes)
-     template_surf=etc/run_template
-     if [ ! -e $template_surf ]
-     then
-
-     if $(mkdir -p $template_surf)
+     template_lock=etc/run_template.lock
+     if $(mkdir -p $template_lock)
      then
          echo computeSurfaceDisplacementsSingleStructure template_placeholder  $parcellate_cfg -N -t
          computeSurfaceDisplacementsSingleStructure template_placeholder  $parcellate_cfg -N -t
-    
-	else
+        rm $template_lock
+	 else
 	    sleep 300 #shouldn't take longer than 5 min
-     fi
      fi
 
      for subj in $subjlist 

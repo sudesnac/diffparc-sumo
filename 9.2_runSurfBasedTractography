@@ -45,7 +45,7 @@ targetmasks=$parc_dir/targets.txt
 brainmask=$bedpost_dir/nodif_brain_mask.nii.gz
 brainmask_bin=$out_tract_dir/nodif_brain_mask_bin.nii.gz
 bedpost_samples=$bedpost_dir/merged
-seedref=$brainmask
+seedref=$bedpost_dir/mean_f1samples.nii.gz
 
 #read index_list to pull out indices of interest
 #pull out indices of interest
@@ -105,6 +105,8 @@ fi
 
 #run probtrack
 
+#### BUG IN MESHSPACE AND TRACKING!!
+
 probtrackx2 \
 -x $prop_byu_subj_dti_gii \
 -m $brainmask \
@@ -115,12 +117,13 @@ probtrackx2 \
 --forcedir \
 --opd --os2t  --s2tastext \
 --seedref=$seedref \
+--meshspace=vox \
 --omatrix2 \
 --target2=$brainmask_bin \
 -V 1 \
 -l  --onewaycondition -c 0.2 -S 2000 --steplength=0.5 \
--P 100 --fibthresh=0.01 --distthresh=0.0 --sampvox=0.0  $probtrack_opts
-#-P 5000 --fibthresh=0.01 --distthresh=0.0 --sampvox=0.0  $probtrack_opts
+#-P 1 --fibthresh=0.01 --distthresh=0.0 --sampvox=0.0  $probtrack_opts
+-P 5000 --fibthresh=0.01 --distthresh=0.0 --sampvox=0.0  $probtrack_opts
 
 #ProbtrackX argument info
 #--------------------------

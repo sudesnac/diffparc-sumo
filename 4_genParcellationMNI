@@ -69,6 +69,7 @@ coreg_dir=$subj_dir/coreg/rigid_aladin_t1_$legacy_dwi_type
 
 linreg_dir=$subj_dir/reg/affine_aladin_t1/${atlas}_${subj}
 linxfm=$linreg_dir/${subj}_to_${atlas}.xfm
+linxfm_inv=$linreg_dir/${atlas}_to_${subj}.xfm
 
 
 xfm_dwi_t1=$coreg_dir/${legacy_dwi_type}_to_t1.xfm
@@ -96,6 +97,7 @@ reg_resample -flo $seed_mask -res $seed_mask_atlas -aff $linxfm -ref $atlas_t1 -
 
 
 dti_parc=$out_dir/diffusion_parcellation.masked.nii.gz
+dti_parc_subj=$track_dir/diffusion_parcellation.masked.nii.gz
 
 for track in `ls $track_dir/seeds_to_*.nii.gz`
 do
@@ -148,6 +150,10 @@ done #done targetlist
  echo  prob4DtoMaxProb $out_dir/seeds.4d.nii.gz 1 $dti_parc
  prob4DtoMaxProb $out_dir/seeds.4d.nii.gz 1 $dti_parc
 
+ #bring back to subject space
+ echo reg_resample -flo $dti_parc -res $dti_parc_subj -aff $linxfm_inv -ref $subj_t1 -NN 0
+ reg_resample -flo $dti_parc -res $dti_parc_subj -aff $linxfm_inv -ref $subj_t1 -NN 0
+  
 
 done  #subject
 
