@@ -474,16 +474,17 @@ then
 
     mkdir -p $work_folder/etc
     list=$work_folder/etc/subjects.$analysis_level
-    rm -f $qclist
-    touch $qclist
+    rm -f $list
+    touch ${list}
     for subj in $subjlist
     do
         subj=`fixsubj $subj`
         echo $subj >> $list
     done
 
+    source $parcellate_cfg
     pushd $work_folder      
-    runMatlabCmd  analyzeSurfData "'$list'"
+    runMatlabCmd  analyzeSurfData "'$list'" "'$in_prepdwi_dir'" "'$parcellation_name'"
     popd
 
 

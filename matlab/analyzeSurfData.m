@@ -1,14 +1,13 @@
 %script for analyzing surface-based data -- clean-up in progress
 
-function analyzeSurfData ( subj_list ,surfdisp_name,parcellation_name )
+function analyzeSurfData ( subj_list ,prepdwi_dir,parcellation_name )
 
 
 %% definitions
-data_dir='work_pipeline';
+data_dir='.';
 
 
-%surfdisp_name=striatum_unbiasedAvg_affine
-surfdisp_dir=sprintf('%s/surfdisp_singlestruct_%s',data_dir,surfdisp_name);
+surfdisp_dir=sprintf('%s/surfdisp_singlestruct_%s',data_dir,parcellation_name);
 
 template_byu=sprintf('%s/template/seed_nii.byu',surfdisp_dir);
 
@@ -183,7 +182,7 @@ for s=1:length(subjects)
     subj=subjects{s};
     
     %get T1-based surf displacement data
-    surfdisp_txt=sprintf('%s/%s/dstriatum.surf_inout.txt',surfdisp_dir,subj);
+    surfdisp_txt=sprintf('%s/%s/seed.surf_inout.txt',surfdisp_dir,subj);
     inout=importdata(surfdisp_txt);
     surfdisp_data(s,:)=inout;
    
@@ -219,7 +218,7 @@ for s=1:length(subjects)
     
     
     subj=subjects{s};
-    conn_matrix_txt=sprintf('%s/%s/dwi/uncorrected_denoise_unring_eddy/vertexTract/matrix_seeds_to_all_targets',data_dir,subj);
+    conn_matrix_txt=sprintf('%s/%s/bedpost.%s/vertexTract/matrix_seeds_to_all_targets',data_dir,subj,parcellation_name);
     
     conn=importdata(conn_matrix_txt);
     
@@ -255,10 +254,10 @@ for s=1:length(subjects)
     subj=subjects{s};
     
     %get seeds to targets
-    conn_matrix_txt=sprintf('%s/%s/dwi/uncorrected_denoise_unring_eddy/vertexTract/matrix_seeds_to_all_targets',data_dir,subj);
+    conn_matrix_txt=sprintf('%s/%s/bedpost.%s/vertexTract/matrix_seeds_to_all_targets',data_dir,subj,parcellation_name);
     conn=importdata(conn_matrix_txt);
     %get T1-based surf displacement data
-    surfdisp_txt=sprintf('%s/%s/dstriatum.surf_inout.txt',surfdisp_dir,subj);
+    surfdisp_txt=sprintf('%s/%s/seed.surf_inout.txt',surfdisp_dir,subj);
     inout=importdata(surfdisp_txt);
     
     
@@ -313,7 +312,7 @@ for s=1:length(subjects)
     subj=subjects{s};
     
     %get T1-based surf displacement data
-    surfdisp_txt=sprintf('%s/%s/dstriatum.surf_inout.txt',surfdisp_dir,subj);
+    surfdisp_txt=sprintf('%s/%s/seed.surf_inout.txt',surfdisp_dir,subj);
     inout=importdata(surfdisp_txt);
     
     %figure;
@@ -345,18 +344,19 @@ mean_fa=zeros(length(subjects),2,length(targets));
 
 for s=1:length(subjects)
     subj=subjects{s};
-    fdt_matrix=sprintf('%s/%s/dwi/uncorrected_denoise_unring_eddy/vertexTract/fdt_matrix2.dot',data_dir,subj);
+    fdt_matrix=sprintf('%s/%s/bedpost.%s/vertexTract/fdt_matrix2.dot',data_dir,subj,parcellation_name);
     
     %following commandis memory intensive:
     mat=spconvert(load(fdt_matrix));
-    
-    maskimg=sprintf('%s/%s/dwi/uncorrected_denoise_unring_eddy/bedpost.bedpostX/nodif_brain_mask_bin.nii.gz',data_dir,subj);
+   
+
+    maskimg=sprintf('%s/bedpost/%s/nodif_brain_mask.nii.gz',prepdwi_dir,subj);
     mask=load_nifti(maskimg);
     
-    faimg=sprintf('%s/%s/dwi/uncorrected_denoise_unring_eddy/dti_FA.nii.gz',data_dir,subj);
+    faimg=sprintf('%s/prepdwi/%s/dwi/%s_dwi_space-T1w_FA.nii.gz',prepdwi_dir,subj,subj);
     fa=load_nifti(faimg);
     
-    fa_mat=fa.vol(mask.vol==1);
+    fa_mat=fa.vol(mask.vol>0);
     
     tract_fa=mat*fa_mat./(mat*ones(size(fa_mat)));
     

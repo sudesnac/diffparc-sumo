@@ -119,7 +119,8 @@ probtrackx2 \
 --target2=$brainmask_bin \
 -V 1 \
 -l  --onewaycondition -c 0.2 -S 2000 --steplength=0.5 \
--P 5000 --fibthresh=0.01 --distthresh=0.0 --sampvox=0.0  $probtrack_opts
+-P 100 --fibthresh=0.01 --distthresh=0.0 --sampvox=0.0  $probtrack_opts
+#-P 5000 --fibthresh=0.01 --distthresh=0.0 --sampvox=0.0  $probtrack_opts
 
 #ProbtrackX argument info
 #--------------------------
