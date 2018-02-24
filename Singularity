@@ -1,12 +1,11 @@
 Bootstrap: shub
-From: akhanf/vasst-dev:v0.0.4d
+From: akhanf/vasst-dev:v0.0.4e
 
 #########
 %setup
 #########
 mkdir $SINGULARITY_ROOTFS/diffparcellate
 cp -Rv . $SINGULARITY_ROOTFS/diffparcellate
-
 
 
 cp -v matlab/*.m $SINGULARITY_ROOTFS/opt/vasst-dev/tools/matlab
