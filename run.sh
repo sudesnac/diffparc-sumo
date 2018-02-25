@@ -57,7 +57,7 @@ then
  echo "		group3: generate surface-based analysis stats and results"
  echo ""
  echo "         Available parcellate types:"
- for parc in `ls $execpath/parcellate.*.cfg`
+ for parc in `ls $execpath/cfg/parcellate.*.cfg`
  do
      parc=${parc##*/parcellate.}
      parc=${parc%%.cfg}
@@ -216,9 +216,9 @@ participants=$in_bids/participants.tsv
 work_folder=$out_folder/work
 derivatives=$out_folder #bids derivatives
 
-if [ -e $execpath/parcellate.$parcellate_type.cfg ]
+if [ -e $execpath/cfg/parcellate.$parcellate_type.cfg ]
 then
-     parcellate_cfg=$execpath/parcellate.$parcellate_type.cfg 
+     parcellate_cfg=$execpath/cfg/parcellate.$parcellate_type.cfg 
  elif [ -e $parcellate_type ]
   then 
          parcellate_cfg=$parcellate_type

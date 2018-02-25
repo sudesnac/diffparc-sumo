@@ -115,11 +115,12 @@ ls $targets_dir/*.nii.gz > $targets_file
 
 if [ -n "$avoid_seg" ]
 then
-    if [ -e $avoid_seg ]
+    avoid_mask=${subj_dir}/$avoid_seg
+    if [ -e $avoid_mask ]
     then
-     probtrack_opts="$probtrack_opts --avoid=$avoid_seg"
+     probtrack_opts="$probtrack_opts --avoid=$avoid_mask"
  else
-     echo "WARNING: avoid_seg $avoid_seg not found, not using --avoid"
+     echo "WARNING: avoid_seg $avoid_mask not found, not using --avoid"
 
      fi
 
