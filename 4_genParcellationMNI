@@ -37,7 +37,7 @@ do
 
  if [ "$legacy_dwi_proc" = 1 ]
  then
-    processBedpostParcellateSeed uncorrected_denoise_unring_eddy $parcellate_cfg $subj
+  processBedpostParcellateSeed uncorrected_denoise_unring_eddy $parcellate_cfg $subj
  else
   processBedpostParcellateSeedfromPrepDWI $in_bedpost_root $parcellate_cfg $subj
  fi
@@ -133,7 +133,7 @@ do
   map=$out_dir/seeds_to_$lbl.nii.gz
 
   map_left=$out_dir/seeds_to_$lbl.mask_left.nii.gz
-  map_right=$track_dir/seeds_to_$lbl.mask_right.nii.gz
+  map_right=$out_dir/seeds_to_$lbl.mask_right.nii.gz
 
   #mask with left/right  ROI:
   fslmaths $map -roi $roi_left $map_left
