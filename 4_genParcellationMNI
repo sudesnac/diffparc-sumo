@@ -37,7 +37,7 @@ do
 
  if [ "$legacy_dwi_proc" = 1 ]
  then
-    processBedpostParcellateSeed uncorrected_denoise_unring_eddy $parcellate_cfg $subj
+  processBedpostParcellateSeed uncorrected_denoise_unring_eddy $parcellate_cfg $subj
  else
   processBedpostParcellateSeedfromPrepDWI $in_bedpost_root $parcellate_cfg $subj
  fi
@@ -69,6 +69,7 @@ coreg_dir=$subj_dir/coreg/rigid_aladin_t1_$legacy_dwi_type
 
 linreg_dir=$subj_dir/reg/affine_aladin_t1/${atlas}_${subj}
 linxfm=$linreg_dir/${subj}_to_${atlas}.xfm
+linxfm_inv=$linreg_dir/${atlas}_to_${subj}.xfm
 
 
 xfm_dwi_t1=$coreg_dir/${legacy_dwi_type}_to_t1.xfm
@@ -96,6 +97,7 @@ reg_resample -flo $seed_mask -res $seed_mask_atlas -aff $linxfm -ref $atlas_t1 -
 
 
 dti_parc=$out_dir/diffusion_parcellation.masked.nii.gz
+dti_parc_subj=$track_dir/diffusion_parcellation.masked.nii.gz
 
 for track in `ls $track_dir/seeds_to_*.nii.gz`
 do
@@ -131,7 +133,7 @@ do
   map=$out_dir/seeds_to_$lbl.nii.gz
 
   map_left=$out_dir/seeds_to_$lbl.mask_left.nii.gz
-  map_right=$track_dir/seeds_to_$lbl.mask_right.nii.gz
+  map_right=$out_dir/seeds_to_$lbl.mask_right.nii.gz
 
   #mask with left/right  ROI:
   fslmaths $map -roi $roi_left $map_left
@@ -148,6 +150,10 @@ done #done targetlist
  echo  prob4DtoMaxProb $out_dir/seeds.4d.nii.gz 1 $dti_parc
  prob4DtoMaxProb $out_dir/seeds.4d.nii.gz 1 $dti_parc
 
+ #bring back to subject space
+ echo reg_resample -flo $dti_parc -res $dti_parc_subj -aff $linxfm_inv -ref $subj_t1 -NN 0
+ reg_resample -flo $dti_parc -res $dti_parc_subj -aff $linxfm_inv -ref $subj_t1 -NN 0
+  
 
 done  #subject
 
