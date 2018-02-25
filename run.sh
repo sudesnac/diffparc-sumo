@@ -43,11 +43,8 @@ then
  echo "          [--in_prepdwi_dir PREPDWI_DIR]" 
  echo " Optional arguments:"
  echo "          [--participant_label PARTICIPANT_LABEL [PARTICIPANT_LABEL...]]"
-# echo "          [--matching_dwi MATCHING_PATTERN"
  echo "          [--matching_T1w MATCHING_STRING"
  echo "          [--reg_init_participant PARTICIPANT_LABEL"
-# echo "          [--n_cpus] NCPUS (for bedpost, default: 8) "
-# echo "          [--enable_legacy_dwi (for backwards compatibility of older surf_striatum processed data)"
  echo "          [--parcellate_type PARCELLATE_TYPE (default: striatum_cortical; can alternatively specify config file) "
  echo ""
  echo "	Analysis levels:"
@@ -58,7 +55,7 @@ then
  echo "		participant3: surface-based displacement morphometry (LDDMM)"
  echo "		participant4: surface-based tractography parcellation"
  echo "		group3: generate surface-based analysis stats and results"
-
+ echo ""
  echo "         Available parcellate types:"
  for parc in `ls $execpath/parcellate.*.cfg`
  do
