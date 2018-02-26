@@ -381,6 +381,9 @@ then
 
    echo $execpath/4_genParcellationMNI $work_folder $bedpost_root $subj
    $execpath/4_genParcellationMNI $work_folder $bedpost_root $subj
+   
+   echo $execpath/5_cleanupBIDS $work_folder $out_folder $subj
+   $execpath/5_cleanupBIDS $work_folder $out_folder $subj
   fi
 
  done
