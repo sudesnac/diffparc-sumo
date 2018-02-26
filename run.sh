@@ -18,6 +18,7 @@ subj=$1
 execpath=`dirname $0`
 execpath=`realpath $execpath`
 
+cfg_dir=$execpath/cfg
 
 in_atlas_dir=$execpath/atlases
 
@@ -292,7 +293,7 @@ then
 index_list=`realpath $index_list`
 
 #exports for called scripts
-export legacy_dwi_proc in_atlas_dir parcellate_cfg index_list
+export legacy_dwi_proc in_atlas_dir parcellate_cfg index_list cfg_dir
 
 echo $participants
 	
