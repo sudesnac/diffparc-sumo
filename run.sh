@@ -230,10 +230,20 @@ then
 fi
 
 
-if [ ! -n "$in_prepdwi_dir" ]
+
+if [ ! -n "$in_prepdwi_dir" ] # if not specified
 then
-    echo "ERROR: --in_prepdwi_dir must be specified!"
-    exit 1
+
+    #if not specified, use stored value:
+    if [ -e $work_folder/etc/in_prepdwi_dir ]
+    then
+        in_prepdwi_dir=`cat $work_folder/etc/in_prepdwi_dir`
+        echo "Using previously defined --in_prepdwi_dir $in_prepdwi_dir"
+    else
+        echo "ERROR: --in_prepdwi_dir must be specified!"
+        exit 1
+    fi
+
 fi
 
 if [ ! -e $in_prepdwi_dir ]
@@ -241,6 +251,8 @@ then
     echo "ERROR: in_prepdwi_dir $in_prepdwi_dir does not exist!"
 	exit 1
 fi
+
+
 
 
 if [ -e $in_bids ]
@@ -278,6 +290,11 @@ fi
 
 mkdir -p $work_folder $derivatives
 work_folder=`realpath $work_folder`
+
+#in_prepdwi_dir defined:
+#save it to file
+mkdir -p $work_folder/etc
+echo "`realpath $in_prepdwi_dir`" > $work_folder/etc/in_prepdwi_dir
 
 
 #surf disp requires this (can edit later to build into that and remove this..)
@@ -381,7 +398,13 @@ then
 
    echo $execpath/4_genParcellationMNI $work_folder $bedpost_root $subj
    $execpath/4_genParcellationMNI $work_folder $bedpost_root $subj
-   
+  
+   echo $execpath/4.1_genTractMaps $work_folder $bedpost_root $subj
+   $execpath/4.1_genTractMaps $work_folder $bedpost_root $subj
+ 
+   echo $execpath/4.2_genParcellationNlinMNI $work_folder $subj
+   $execpath/4.2_genParcellationNlinMNI $work_folder $subj
+
    echo $execpath/5_cleanupBIDS $work_folder $out_folder $subj
    $execpath/5_cleanupBIDS $work_folder $out_folder $subj
   fi
@@ -394,7 +417,7 @@ then
     echo "analysis level group2, computing parcellation volumes"
 
     #need to make a subjlist for this command 
-    list=$work_folder/subjects_group2
+    list=$work_folder/subjects_group2.$RANDOM
     rm -f $list
     touch $list
     for subj in $subjlist
@@ -402,12 +425,14 @@ then
         subj=`fixsubj $subj`
         echo $subj >> $list
     done
-    echo $execpath/8.1_computeThreshDiffParcVolumeLeftRight $work_folder $list
-    $execpath/8.1_computeThreshDiffParcVolumeLeftRight $work_folder $list
-    echo $execpath/8.3_computeMaxProbDiffParcVolumeLeftRight $work_folder $list
-    $execpath/8.3_computeMaxProbDiffParcVolumeLeftRight $work_folder $list
+   # echo $execpath/8.1_computeThreshDiffParcVolumeLeftRight $work_folder $list
+   # $execpath/8.1_computeThreshDiffParcVolumeLeftRight $work_folder $list
+    echo $execpath/8.3_computeMaxProbDiffParcVolumeLeftRight $work_folder $out_folder $list
+    $execpath/8.3_computeMaxProbDiffParcVolumeLeftRight $work_folder $out_folder $list
 
- 
+    #delete after done
+    rm -f $list
+
  elif [ "$analysis_level" = "participant3" ]
  then
 
@@ -470,7 +495,7 @@ then
     echo "analysis level group3, computing surf-based analysis"
 
     mkdir -p $work_folder/etc
-    list=$work_folder/etc/subjects.$analysis_level
+    list=$work_folder/etc/subjects.$analysis_level.$RANDOM
     rm -f $list
     touch ${list}
     for subj in $subjlist
@@ -484,6 +509,7 @@ then
     runMatlabCmd  analyzeSurfData "'$list'" "'$in_prepdwi_dir'" "'$parcellation_name'"
     popd
 
+    rm -f $list
 
  else
   echo "analysis_level $analysis_level does not exist"

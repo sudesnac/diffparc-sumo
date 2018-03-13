@@ -2,7 +2,7 @@
 
 if [ "$#" -lt 2 ]
 then
-	 echo "Usage: $0 <work_dir> <subjlist>"
+	 echo "Usage: $0 <work_dir> <out_folder> <subjlist>"
 	 exit 1
 fi
 
@@ -12,19 +12,24 @@ execpath=`dirname $0`
 execpath=`realpath $execpath`
 
 work_dir=$1
-subjlist=$2
-shift 2
+out_folder=$2
+subjlist=$3
+shift 3
 
-parcellate=striatum
 
-. $execpath/${parcellate}.cfg
+. $parcellate_cfg
 
 
 subjlist=`realpath $subjlist`
 
+mni_suffix=reg-affine_space-MNI152NLin2009cAsym
+subj_suffix=space-T1w
+
+out_csv_atlas=`realpath $out_folder`/volumes_${bids_tags}_diffparc_$mni_suffix.csv
+out_csv=`realpath $out_folder`/volumes_${bids_tags}_diffparc_$subj_suffix.csv
+
 pushd $work_dir
 
-out_csv=${parcellation_name}.maxProbDiffusionParcVolume.byHemi.csv
 
 if [ "$legacy_dwi_proc" = 1 ]
 then
@@ -34,7 +39,9 @@ track_dir=bedpost.${parcellation_name}/probtrack
 fi
 
 
-computeSegVolume StriatumTargets_Hemi.csv $track_dir/$atlas/diffusion_parcellation.masked.nii.gz  $1 > $out_csv
+computeSegVolume StriatumTargets_Hemi.csv $track_dir/$atlas/diffusion_parcellation.masked.nii.gz  $subjlist > $out_csv_atlas
+computeSegVolume StriatumTargets_Hemi.csv $track_dir/diffusion_parcellation.masked.nii.gz  $subjlist > $out_csv
+
 popd
 
 exit 0

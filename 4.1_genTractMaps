@@ -1,0 +1,221 @@
+#!/bin/bash
+
+if [ "$#" -lt 3 ]
+then
+ echo "Usage $0 <work_folder> <in_bedpost_root> <subjid/list>"
+ echo ""
+ exit 0
+fi
+
+work_folder=$1
+in_bedpost_root=$2
+
+echo "Sourcing $parcellate_cfg"
+source $parcellate_cfg
+
+
+#input seed nii
+#remap csv files
+#output 
+
+
+
+shift 2
+
+
+
+
+pushd $work_folder
+
+if [ -f $1 ]
+then
+ subjids=`cat $1`
+else
+ subjids=$1
+fi
+
+
+for subj in $subjids
+do
+
+
+subj_dir=$subj
+ parc_dir=$subj_dir/bedpost.$parcellation_name
+
+  bedpost_dir=$in_bedpost_root/$subj
+
+ seed=$parc_dir/probtrack/diffusion_parcellation.masked.nii.gz
+
+ seeds_dir=$parc_dir/parcellated_seeds
+
+ #remap from lr to bothhemi
+ echo octave --eval "remapSegmentationLabels('$seed','$cfg_dir/StriatumParcellationLabels.csv','$target_labels_txt','$seeds_dir')"
+ octave --eval "remapSegmentationLabels('$seed','$cfg_dir/StriatumParcellationLabels.csv','$target_labels_txt','$seeds_dir')"
+
+
+ seeds_txt=$parc_dir/parcellated_seeds.txt
+
+ ls $seeds_dir/*.nii.gz > $seeds_txt
+
+
+ targets_txt=$parc_dir/targets.txt
+
+ mask_file=$bedpost_dir/nodif_brain_mask.nii.gz
+
+ 
+ #now, want to 
+ echo "seeds_txt $seeds_txt "
+ nseeds=`cat $seeds_txt | wc -l`
+
+
+ echo "targets_txt $targets_txt"
+ ntargets=`cat $targets_txt  | wc -l`
+if [ ! "$nseeds" = "$ntargets" ]
+then
+    echo "must have same number of targets as seeds!"
+    echo "nseeds: $nseeds, ntargets: $ntargets"
+    continue 
+fi
+
+ #run probtrackx for every corresponding line in txt files
+
+ samples_base=$bedpost_dir/merged
+ probseeds=100
+ probtrack_opts="-l --onewaycondition -c 0.2 -S 2000 --steplength=0.5 -P $probseeds --fibthresh=0.01 --distthresh=0.0 --sampvox=0.0 --forcedir --opd"
+
+if [ -n "$avoid_seg" ]
+then
+    avoid_mask=${subj_dir}/$avoid_seg
+    if [ -e $avoid_mask ]
+    then
+     probtrack_opts="$probtrack_opts --avoid=$avoid_mask"
+ else
+     echo "WARNING: avoid_seg $avoid_mask not found, not using --avoid"
+
+     fi
+
+fi
+
+    track_dir=$parc_dir/probtrack_parcels_to_targets
+
+for seedi in `seq 1 $nseeds`
+do
+
+    seed_nii=`head -n $seedi $seeds_txt | tail -n 1`
+    target_nii=`head -n $seedi $targets_txt | tail -n 1`
+
+    tract_name=${seed_nii##*/}
+    tract_name=${tract_name%%.*}
+
+    if [ ! -e $track_dir/paths_$tract_name.nii.gz ]
+    then
+    echo probtrackx2 -x $seed_nii --waypoints=$target_nii -m $mask_file -s $samples_base --dir=$track_dir -o paths_$tract_name $probtrack_opts
+    probtrackx2 -x $seed_nii --waypoints=$target_nii -m $mask_file -s $samples_base --dir=$track_dir -o paths_$tract_name $probtrack_opts
+    fi
+   
+   
+
+done
+
+#post-processing to move to MNI space and extract left/right sides
+interp_opt="-LIN"
+
+
+#compute ROIs for MNI left/right hemi
+dimx=`fslval $atlas/t1/t1.nii.gz dim1`
+halfx=`bashcalc "scale=0; $dimx/2"`
+
+roi_left="0 $halfx 0 -1 0 -1 0 -1"
+roi_right="$((halfx+1)) -1 0 -1 0 -1 0 -1"
+
+echo "roi_left $roi_left"
+echo "roi_right $roi_right"
+
+
+#warp probtrack seed to target files back to MNI
+#then average and create maxprob parcellation
+
+
+#apply xfm (using linear interp) 
+coreg_dir=$subj_dir/coreg/rigid_aladin_t1_$legacy_dwi_type
+
+linreg_dir=$subj_dir/reg/affine_aladin_t1/${atlas}_${subj}
+linxfm=$linreg_dir/${subj}_to_${atlas}.xfm
+linxfm_inv=$linreg_dir/${atlas}_to_${subj}.xfm
+
+
+out_dir=$track_dir/$atlas
+mkdir -p $out_dir
+
+subj_t1=$subj_dir/t1/t1.brain.nii.gz
+atlas_t1=${atlas}/t1/t1.brain.nii.gz
+
+
+seed_mask=$subj_dir/$seed_file
+seed_mask_atlas=$out_dir/seedmask.nii.gz
+
+echo reg_resample -flo $seed_mask -res $seed_mask_atlas -aff $linxfm -ref $atlas_t1 -NN 0
+reg_resample -flo $seed_mask -res $seed_mask_atlas -aff $linxfm -ref $atlas_t1 -NN 0
+
+
+tracts_parc=$out_dir/seg_paths.$atlas.nii.gz
+tracts_parc_subj=$track_dir/seg_paths.nii.gz
+
+for track in `ls $track_dir/paths_*.nii.gz`
+do
+
+target=${track##*paths_}
+target=${target%%.nii.gz}
+
+track_atlas=$out_dir/paths_${target}.nii.gz
+reg_resample -flo $track -res $track_atlas -aff $linxfm -ref $atlas_t1 -LIN
+
+
+done #track
+
+
+#now create 4D and maxprob image:
+ seedlist=""
+for lbl_line in `cat $target_labels_txt`
+do
+
+  lbl=${lbl_line%%,*}
+ 
+  map=$out_dir/paths_$lbl.nii.gz
+
+  map_left=$out_dir/paths_$lbl.mask_left.nii.gz
+  map_right=$out_dir/paths_$lbl.mask_right.nii.gz
+
+  #mask with left/right  ROI:
+  fslmaths $map -roi $roi_left $map_left
+  fslmaths $map -roi $roi_right $map_right
+
+  seedlist="$seedlist $map_left $map_right"
+
+done #done targetlist
+
+ #create map for diffusion-based parcellation 
+ echo fslmerge -t $out_dir/seeds.4d.nii.gz $seedlist
+ fslmerge -t $out_dir/seeds.4d.nii.gz $seedlist
+
+
+ #normalize based on seed volume
+ base_seed=$subj_dir/$seed_file 
+  vol=`fslstats $base_seed -V`
+  vol=${vol#[0-9]*\ }
+
+   #->arbitrary heuristic based on 100probseeds & striatum  -> 50 " 
+ threshold=`bashcalc "0.25*$vol/$probseeds"`
+
+ echo  prob4DtoMaxProb $out_dir/seeds.4d.nii.gz $threshold $tracts_parc
+ prob4DtoMaxProb $out_dir/seeds.4d.nii.gz $threshold $tracts_parc
+
+ #bring back to subject space
+ echo reg_resample -flo $tracts_parc -res $tracts_parc_subj -aff $linxfm_inv -ref $subj_t1 -NN 0
+ reg_resample -flo $tracts_parc -res $tracts_parc_subj -aff $linxfm_inv -ref $subj_t1 -NN 0
+  
+
+
+
+done #subj
+

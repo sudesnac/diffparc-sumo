@@ -34,13 +34,64 @@ pushd $work_dir
 for subj in $@
 do
 
+parc_dir=$subj/bedpost.${parcellation_name}
+track_dir=$parc_dir/probtrack
 
+
+if [ ! -e $track_dir/matrix_seeds_to_all_targets ]
+then
+ echo $track_dir/matrix_seeds_to_all_targets does not exist, running tracking:
  if [ "$legacy_dwi_proc" = 1 ]
  then
   processBedpostParcellateSeed uncorrected_denoise_unring_eddy $parcellate_cfg $subj
  else
   processBedpostParcellateSeedfromPrepDWI $in_bedpost_root $parcellate_cfg $subj
  fi
+fi
+
+
+#normalize by targe volume:
+
+ vol_csv=$parc_dir/target_volumes.csv
+ rm -f $vol_csv
+
+ name_txt=$parc_dir/target_names.txt
+ rm -f $name_txt
+
+ echo "Normalizing seed to target maps by volume of target"
+
+ targets_file=$parc_dir/targets.txt
+ #normalize seeds_to_targets by volume of target
+ for target in `cat $targets_file`
+ do
+ 
+  vol=`fslstats $target -V`
+  vol=${vol#[0-9]*\ }
+
+  echo $vol >> $vol_csv
+   
+  name=${target##*/}
+  name=${name%%.nii.gz}
+  
+  echo $name >> $name_txt
+
+  in_seeds=$parc_dir/probtrack/seeds_to_$name.nii.gz
+  norm_seeds=$parc_dir/probtrack/seeds_to_$name.normVol.nii.gz
+
+   echo fslmaths $in_seeds -div $vol $norm_seeds
+   fslmaths $in_seeds -div $vol $norm_seeds
+ 
+ 
+
+ done #targets
+
+
+
+
+
+
+
+
 
 #post-processing to move to MNI space and extract left/right sides
 interp_opt="-LIN"
@@ -130,10 +181,10 @@ do
 
   lbl=${lbl_line%%,*}
  
-  map=$out_dir/seeds_to_$lbl.nii.gz
+  map=$out_dir/seeds_to_$lbl.normVol.nii.gz
 
-  map_left=$out_dir/seeds_to_$lbl.mask_left.nii.gz
-  map_right=$out_dir/seeds_to_$lbl.mask_right.nii.gz
+  map_left=$out_dir/seeds_to_$lbl.normVol.mask_left.nii.gz
+  map_right=$out_dir/seeds_to_$lbl.normVol.mask_right.nii.gz
 
   #mask with left/right  ROI:
   fslmaths $map -roi $roi_left $map_left
@@ -147,8 +198,9 @@ done #done targetlist
  echo fslmerge -t $out_dir/seeds.4d.nii.gz $seedlist
  fslmerge -t $out_dir/seeds.4d.nii.gz $seedlist
 
- echo  prob4DtoMaxProb $out_dir/seeds.4d.nii.gz 1 $dti_parc
- prob4DtoMaxProb $out_dir/seeds.4d.nii.gz 1 $dti_parc
+ threshold=0.0001
+ echo  prob4DtoMaxProb $out_dir/seeds.4d.nii.gz $threshold $dti_parc
+ prob4DtoMaxProb $out_dir/seeds.4d.nii.gz $threshold $dti_parc
 
  #bring back to subject space
  echo reg_resample -flo $dti_parc -res $dti_parc_subj -aff $linxfm_inv -ref $subj_t1 -NN 0

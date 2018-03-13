@@ -1,0 +1,49 @@
+#!/bin/bash
+
+in_4d=$1
+out_seg=$2
+in_mask=$3
+work_dir=$4
+
+if [ "$#" -lt 4 ]
+then
+     echo "Usage: $0 <in_4d> <out_seg> <in_mask> <work_dir>"
+     exit 1
+ fi
+
+mkdir -p $work_dir
+in_4d=`realpath $in_4d`
+in_mask=`realpath $in_mask`
+pushd $work_dir
+
+fslsplit $in_4d 
+
+#normalize by 95 percentile
+
+for im in `ls vol????.nii.gz`
+do 
+    p95=`fslstats $im -P 95`
+    echo fslmaths $im -div $p95 ${im%%.nii.gz}.normP95.nii.gz
+    fslmaths $im -div $p95 ${im%%.nii.gz}.normP95.nii.gz
+done
+
+#remove all but limbic, executive, caudal/rostral motor (i.e. remove last 3 regions (6 incl l/r))
+for im in `ls vol00{08,09,10,11,12,13}.normP95.nii.gz`
+do 
+    fslmaths $im -mul 0 $im;
+done
+
+
+#merge back into 4d
+fslmerge -t avg_seeds_clean.4d.nii.gz  vol????.normP95.nii.gz
+
+prob4DtoMaxProb  avg_seeds_clean.4d.nii.gz 0.001 avg_parc_clean.nii.gz
+
+fslmaths avg_parc_clean.nii.gz -mas $in_mask avg_parc_clean_masked.nii.gz
+
+#median filter:
+fslmaths avg_parc_clean_masked.nii.gz -fmedian avg_parc_clean_masked_fmedian.nii.gz
+
+popd
+
+cp -v $work_dir/avg_parc_clean_masked_fmedian.nii.gz $out_seg

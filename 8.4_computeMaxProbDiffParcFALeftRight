@@ -1,0 +1,68 @@
+#!/bin/bash
+
+if [ "$#" -lt 2 ]
+then
+	 echo "Usage: $0 <work_dir> <out_folder> <subjlist>"
+	 exit 1
+fi
+
+
+#look for atlases in <scripts_dir>/atlases
+execpath=`dirname $0`
+execpath=`realpath $execpath`
+
+work_dir=$1
+out_folder=$2
+subjlist=$3
+shift 3
+
+
+in_prepdwi_dir=`cat $work_dir/etc/in_prepdwi_dir`
+. $parcellate_cfg
+
+
+subjlist=`realpath $subjlist`
+
+#mni_suffix=reg-affine_space-MNI152NLin2009cAsym
+subj_suffix=space-T1w
+
+for metric in FA MD
+do
+
+out_csv=`realpath $out_folder`/dti-${metric}_${bids_tags}_diffparc_$subj_suffix.csv
+
+
+#first, need to import FA images 
+for subj in `cat $subjlist`
+do
+
+in_dti=$in_prepdwi_dir/prepdwi/$subj/dwi/${subj}_dwi_space-T1w_$metric.nii.gz
+mkdir -p $work_dir/$subj/dwi
+out_dti=$work_dir/$subj/dwi/$metric.nii.gz
+if [ ! -e $out_dti ]
+then
+echo reg_resample -flo $in_dti -res $out_dti -ref $work_dir/$subj/t1/t1.nii.gz
+reg_resample -flo $in_dti -res $out_dti -ref $work_dir/$subj/t1/t1.nii.gz
+fi
+done
+
+
+pushd $work_dir
+
+
+if [ "$legacy_dwi_proc" = 1 ]
+then
+track_dir=$legacy_dwi_path/bedpost.${parcellation_name}/probtrack
+else
+track_dir=bedpost.${parcellation_name}/probtrack
+fi
+
+computeSegStats StriatumTargets_Hemi.csv $track_dir/diffusion_parcellation.masked.nii.gz dwi/$metric.nii.gz $subjlist > $out_csv
+
+popd
+
+
+done
+
+
+exit 0

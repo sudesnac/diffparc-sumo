@@ -1,0 +1,140 @@
+#!/bin/bash
+
+function usage {
+ echo ""
+ echo "Usage: ${0##*/}   <working dir> <subjids..>"
+ echo "" 
+ 
+}
+
+if [ "$#" -lt 2 ]
+then
+ usage
+ exit 1
+fi
+
+execpath=`dirname $0`
+execpath=`realpath $execpath`
+
+
+work_dir=$1
+shift 1
+
+#source parcellate_cfg
+. $parcellate_cfg
+
+
+
+pushd $work_dir
+for subj in $@
+do
+
+subj_dir=$subj
+parc_dir=$subj/bedpost.${parcellation_name}
+track_dir=$parc_dir/probtrack
+
+
+
+
+#post-processing to move to MNI space and extract left/right sides
+interp_opt="-LIN"
+
+#compute ROIs for MNI left/right hemi
+dimx=`fslval $atlas/t1/t1.nii.gz dim1`
+halfx=`bashcalc "scale=0; $dimx/2"`
+
+roi_left="0 $halfx 0 -1 0 -1 0 -1"
+roi_right="$((halfx+1)) -1 0 -1 0 -1 0 -1"
+
+echo "roi_left $roi_left"
+echo "roi_right $roi_right"
+
+
+
+
+
+#apply xfm (using linear interp) 
+coreg_dir=$subj_dir/coreg/rigid_aladin_t1_$legacy_dwi_type
+
+nlinreg_dir=$subj_dir/reg/bspline_f3d_t1/${atlas}_${subj}
+nlinxfm=$nlinreg_dir/ctrlpt_${subj}_to_${atlas}.nii.gz
+
+
+out_dir=$track_dir/nlinreg_$atlas
+mkdir -p $out_dir
+
+subj_t1=$subj_dir/t1/t1.brain.nii.gz
+atlas_t1=${atlas}/t1/t1.brain.nii.gz
+
+
+dti_parc=$out_dir/diffusion_parcellation.masked.nii.gz
+
+if [ ! -e $dti_parc ]
+then
+
+
+
+seed_mask=$subj/$seed_file
+seed_mask_atlas=$out_dir/seedmask.nii.gz
+
+
+reg_resample -flo $seed_mask -res $seed_mask_atlas -cpp $nlinxfm  -ref $atlas_t1 -NN 0
+
+for track in `ls $track_dir/seeds_to_*.nii.gz`
+do
+
+target=${track##*seeds_to_}
+target=${target%%.nii.gz}
+
+track_atlas=$out_dir/seeds_to_${target}.nii.gz
+reg_resample -flo $track -res $track_atlas -cpp $nlinxfm -ref $atlas_t1 -LIN
+
+#mask with seed label (remove voxels outside seed region)
+fslmaths $track_atlas -mas $seed_mask_atlas $track_atlas
+
+
+done #track
+
+
+#now create 4D and maxprob image:
+ seedlist=""
+for lbl_line in `cat $target_labels_txt`
+do
+
+  lbl=${lbl_line%%,*}
+ 
+  map=$out_dir/seeds_to_$lbl.normVol.nii.gz
+
+  map_left=$out_dir/seeds_to_$lbl.normVol.mask_left.nii.gz
+  map_right=$out_dir/seeds_to_$lbl.normVol.mask_right.nii.gz
+
+  #mask with left/right  ROI:
+  fslmaths $map -roi $roi_left $map_left
+  fslmaths $map -roi $roi_right $map_right
+
+  seedlist="$seedlist $map_left $map_right"
+
+done #done targetlist
+
+ #create map for diffusion-based parcellation 
+ echo fslmerge -t $out_dir/seeds.4d.nii.gz $seedlist
+ fslmerge -t $out_dir/seeds.4d.nii.gz $seedlist
+
+ threshold=0.0001
+ echo  prob4DtoMaxProb $out_dir/seeds.4d.nii.gz $threshold $dti_parc
+ prob4DtoMaxProb $out_dir/seeds.4d.nii.gz $threshold $dti_parc
+
+ fi
+
+done  #subject
+
+
+
+
+
+popd
+
+
+
+
+exit 0
