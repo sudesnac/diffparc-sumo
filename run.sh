@@ -377,15 +377,12 @@ then
   #then
  #  #try to locate prepdwi derivatives from bids input folder, use most recent
  #  bedpost_root=`ls -dt $in_bids/derivatives/prepdwi*/bedpost | head -n 1`
-   
 
  # if [ ! -e  "$bedpost_root" ]
  # then
  #    echo "Cannot find bedpost folder in $in_bids/derivatives/prepdwi*, required for participant3 analysis"
  #    exit 1
  # fi
-
-
 
  for subj in $subjlist 
  do
@@ -425,10 +422,17 @@ then
         subj=`fixsubj $subj`
         echo $subj >> $list
     done
+
    # echo $execpath/8.1_computeThreshDiffParcVolumeLeftRight $work_folder $list
    # $execpath/8.1_computeThreshDiffParcVolumeLeftRight $work_folder $list
     echo $execpath/8.3_computeMaxProbDiffParcVolumeLeftRight $work_folder $out_folder $list
     $execpath/8.3_computeMaxProbDiffParcVolumeLeftRight $work_folder $out_folder $list
+    echo $execpath/8.4_computeMaxProbDiffParcFALeftRight $work_folder $out_folder $list
+    $execpath/8.4_computeMaxProbDiffParcFALeftRight $work_folder $out_folder $list
+    echo $execpath/8.5_computePathsParcFALeftRight $work_folder $out_folder $list
+    $execpath/8.5_computePathsParcFALeftRight $work_folder $out_folder $list
+
+    
 
     #delete after done
     rm -f $list

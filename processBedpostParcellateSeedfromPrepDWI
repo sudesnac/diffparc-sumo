@@ -89,7 +89,7 @@ subj_dir=$output_dir/$subj
 
  #process for targets
  echo octave --eval "remapSegmentationLabels('$target_seg','$target_mapping_txt','$target_labels_txt','$targets_dir')"
-# octave --eval "remapSegmentationLabels('$target_seg','$target_mapping_txt','$target_labels_txt','$targets_dir')"
+ octave --eval "remapSegmentationLabels('$target_seg','$target_mapping_txt','$target_labels_txt','$targets_dir')"
  
 targets_file=$parc_dir/targets.txt
 targets_file_resampled=$parc_dir/targets_dtires.txt
@@ -116,8 +116,8 @@ rm -f $targets_file $targets_file_resampled
  echo flirt -in $seed_mask -out $seed_resampled -applyxfm -ref $mask_file -interp nearestneighbour
  flirt -in $seed_mask -out $seed_resampled -applyxfm -ref $mask_file -interp nearestneighbour
 
-# probtrack_opts="-l --onewaycondition -c 0.2 -S 2000 --steplength=0.5 -P 5000 --fibthresh=0.01 --distthresh=0.0 --sampvox=0.0 --forcedir --opd --os2t --s2tastext"
- probtrack_opts="-l --onewaycondition -c 0.2 -S 2000 --steplength=0.5 -P 1000 --fibthresh=0.01 --distthresh=0.0 --sampvox=0.0 --forcedir --opd --os2t --s2tastext"
+ probtrack_opts="-l --onewaycondition -c 0.2 -S 2000 --steplength=0.5 -P 5000 --fibthresh=0.01 --distthresh=0.0 --sampvox=0.0 --forcedir --opd --os2t --s2tastext"
+# probtrack_opts="-l --onewaycondition -c 0.2 -S 2000 --steplength=0.5 -P 1000 --fibthresh=0.01 --distthresh=0.0 --sampvox=0.0 --forcedir --opd --os2t --s2tastext"
 
 if [ -n "$avoid_seg" ]
 then
@@ -133,7 +133,7 @@ then
 fi
 
  echo probtrackx2 -x $seed_mask --targetmasks=$targets_file -m $mask_file -s $samples_base --dir=$output_dir $probtrack_opts
-# probtrackx2 -x $seed_mask --targetmasks=$targets_file -m $mask_file -s $samples_base --dir=$output_dir $probtrack_opts
+ probtrackx2 -x $seed_mask --targetmasks=$targets_file -m $mask_file -s $samples_base --dir=$output_dir $probtrack_opts
 
 
 done #subj
