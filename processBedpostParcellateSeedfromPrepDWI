@@ -100,8 +100,15 @@ rm -f $targets_file $targets_file_resampled
  do 
      #resample to DTI space (required when doing surface-based tracking..)
      resampled=${target%%.nii.gz}_resampled.nii.gz
-    echo flirt -in $target -out $resampled -applyxfm -ref $mask_file -interp nearestneighbour
-    flirt -in $target -out $resampled -applyxfm -ref $mask_file -interp nearestneighbour
+
+
+#    echo flirt -in $target -out $resampled -applyxfm -ref $mask_file -interp nearestneighbour
+#    flirt -in $target -out $resampled -applyxfm -ref $mask_file -interp nearestneighbour
+
+    #flirt was incorrect, replace with reg_resample
+    echo reg_resample -flo $target -res $resampled -ref $mask_file -NN 0
+    reg_resample -flo $target -res $resampled -ref $mask_file -NN 0
+
     ls $target >> $targets_file
     ls $resampled >> $targets_file_resampled
  done
@@ -113,8 +120,12 @@ rm -f $targets_file $targets_file_resampled
 
  seed_resampled=$parc_dir/seed_dtires.nii.gz
 
- echo flirt -in $seed_mask -out $seed_resampled -applyxfm -ref $mask_file -interp nearestneighbour
- flirt -in $seed_mask -out $seed_resampled -applyxfm -ref $mask_file -interp nearestneighbour
+# echo flirt -in $seed_mask -out $seed_resampled -applyxfm -ref $mask_file -interp nearestneighbour
+# flirt -in $seed_mask -out $seed_resampled -applyxfm -ref $mask_file -interp nearestneighbour
+
+ #flirt incorrect, replace with reg_resample
+ echo reg_resample -flo $seed_mask -res $seed_resmpled -ref $mask_file -NN 0
+ reg_resample -flo $seed_mask -res $seed_resmpled -ref $mask_file -NN 0
 
  probtrack_opts="-l --onewaycondition -c 0.2 -S 2000 --steplength=0.5 -P 5000 --fibthresh=0.01 --distthresh=0.0 --sampvox=0.0 --forcedir --opd --os2t --s2tastext"
 # probtrack_opts="-l --onewaycondition -c 0.2 -S 2000 --steplength=0.5 -P 1000 --fibthresh=0.01 --distthresh=0.0 --sampvox=0.0 --forcedir --opd --os2t --s2tastext"
