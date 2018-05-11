@@ -77,36 +77,43 @@ then
 seed_mask=$subj/$seed_file
 seed_mask_atlas=$out_dir/seedmask.nii.gz
 
-
+#warp seed from subj to atlas space
+echo reg_resample -flo $seed_mask -res $seed_mask_atlas -cpp $nlinxfm  -ref $atlas_t1 -NN 0
 reg_resample -flo $seed_mask -res $seed_mask_atlas -cpp $nlinxfm  -ref $atlas_t1 -NN 0
 
-for track in `ls $track_dir/seeds_to_*.nii.gz`
+for track in `ls $track_dir/seeds_to_*_resampled.normVol.nii.gz`
 do
 
 target=${track##*seeds_to_}
 target=${target%%.nii.gz}
 
 track_atlas=$out_dir/seeds_to_${target}.nii.gz
+#warp from subj to atlas space
+echo reg_resample -flo $track -res $track_atlas -cpp $nlinxfm -ref $atlas_t1 -LIN
 reg_resample -flo $track -res $track_atlas -cpp $nlinxfm -ref $atlas_t1 -LIN
 
 #mask with seed label (remove voxels outside seed region)
+echo fslmaths $track_atlas -mas $seed_mask_atlas $track_atlas
 fslmaths $track_atlas -mas $seed_mask_atlas $track_atlas
 
 
 done #track
 
 
+ name_txt=$parc_dir/target_names.txt
 #now create 4D and maxprob image:
  seedlist=""
 for lbl_line in `cat $target_labels_txt`
-do
-
+do          
   lbl=${lbl_line%%,*}
- 
-  map=$out_dir/seeds_to_$lbl.normVol.nii.gz
 
-  map_left=$out_dir/seeds_to_$lbl.normVol.mask_left.nii.gz
-  map_right=$out_dir/seeds_to_$lbl.normVol.mask_right.nii.gz
+
+
+ 
+  map=$out_dir/seeds_to_${lbl}_resampled.normVol.nii.gz
+
+  map_left=$out_dir/seeds_to_${lbl}_resampled.normVol.mask_left.nii.gz
+  map_right=$out_dir/seeds_to_${lbl}_resampled.normVol.mask_right.nii.gz
 
   #mask with left/right  ROI:
   fslmaths $map -roi $roi_left $map_left

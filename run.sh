@@ -396,8 +396,10 @@ then
    echo $execpath/4_genParcellationMNI $work_folder $bedpost_root $subj
    $execpath/4_genParcellationMNI $work_folder $bedpost_root $subj
   
-   echo $execpath/4.1_genTractMaps $work_folder $bedpost_root $subj
-   $execpath/4.1_genTractMaps $work_folder $bedpost_root $subj
+
+# skip this, since accomplished by prepdwi participant2 level
+   #echo $execpath/4.1_genTractMaps $work_folder $bedpost_root $subj
+   #$execpath/4.1_genTractMaps $work_folder $bedpost_root $subj
  
    echo $execpath/4.2_genParcellationNlinMNI $work_folder $subj
    $execpath/4.2_genParcellationNlinMNI $work_folder $subj

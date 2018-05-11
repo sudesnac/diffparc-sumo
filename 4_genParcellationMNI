@@ -45,7 +45,7 @@ then
  then
   processBedpostParcellateSeed uncorrected_denoise_unring_eddy $parcellate_cfg $subj
  else
-  processBedpostParcellateSeedfromPrepDWI $in_bedpost_root $parcellate_cfg $subj
+  $execpath/processBedpostParcellateSeedfromPrepDWI $in_bedpost_root $parcellate_cfg $subj
  fi
 fi
 
@@ -75,11 +75,12 @@ fi
   
   echo $name >> $name_txt
 
-  in_seeds=$parc_dir/probtrack/seeds_to_$name.nii.gz
-  norm_seeds=$parc_dir/probtrack/seeds_to_$name.normVol.nii.gz
+  in_seeds=$parc_dir/probtrack/seeds_to_${name}_resampled.nii.gz
+  norm_seeds=$parc_dir/probtrack/seeds_to_${name}_resampled.normVol.nii.gz
 
    echo fslmaths $in_seeds -div $vol $norm_seeds
-   fslmaths $in_seeds -div $vol $norm_seeds
+#   fslmaths $in_seeds -div $vol $norm_seeds - disable normalization for a sec..
+   fslmaths $in_seeds -mul 1 $norm_seeds
  
  
 
@@ -150,7 +151,7 @@ reg_resample -flo $seed_mask -res $seed_mask_atlas -aff $linxfm -ref $atlas_t1 -
 dti_parc=$out_dir/diffusion_parcellation.masked.nii.gz
 dti_parc_subj=$track_dir/diffusion_parcellation.masked.nii.gz
 
-for track in `ls $track_dir/seeds_to_*.nii.gz`
+for track in `ls $track_dir/seeds_to_*_resampled.normVol.nii.gz`
 do
 
 target=${track##*seeds_to_}
@@ -180,11 +181,12 @@ for lbl_line in `cat $target_labels_txt`
 do
 
   lbl=${lbl_line%%,*}
- 
-  map=$out_dir/seeds_to_$lbl.normVol.nii.gz
 
-  map_left=$out_dir/seeds_to_$lbl.normVol.mask_left.nii.gz
-  map_right=$out_dir/seeds_to_$lbl.normVol.mask_right.nii.gz
+ 
+  map=$out_dir/seeds_to_${lbl}_resampled.normVol.nii.gz
+
+  map_left=$out_dir/seeds_to_${lbl}_resampled.normVol.mask_left.nii.gz
+  map_right=$out_dir/seeds_to_${lbl}_resampled.normVol.mask_right.nii.gz
 
   #mask with left/right  ROI:
   fslmaths $map -roi $roi_left $map_left

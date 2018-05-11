@@ -86,6 +86,14 @@ subj_dir=$output_dir/$subj
  echo fslmaths $sig_file -bin $mask_file
  fslmaths $sig_file -bin $mask_file
 
+ ref_file=$parc_dir/seed_ref.nii.gz
+
+ #resample to isotropic 1mm for higher-res seed space
+  echo mri_convert $mask_file -vs 1 1 1 $ref_file  -rt nearest
+  mri_convert $mask_file -vs 1 1 1 $ref_file  -rt nearest
+
+
+  echo "making ref file"
 
  #process for targets
  echo octave --eval "remapSegmentationLabels('$target_seg','$target_mapping_txt','$target_labels_txt','$targets_dir')"
@@ -98,6 +106,11 @@ rm -f $targets_file $targets_file_resampled
 
  for target in `ls $targets_dir/*.nii.gz`
  do 
+     if echo "$target" | grep -q resampled 
+     then
+         #already resampled
+        continue 
+    fi
      #resample to DTI space (required when doing surface-based tracking..)
      resampled=${target%%.nii.gz}_resampled.nii.gz
 
@@ -106,8 +119,8 @@ rm -f $targets_file $targets_file_resampled
 #    flirt -in $target -out $resampled -applyxfm -ref $mask_file -interp nearestneighbour
 
     #flirt was incorrect, replace with reg_resample
-    echo reg_resample -flo $target -res $resampled -ref $mask_file -NN 0
-    reg_resample -flo $target -res $resampled -ref $mask_file -NN 0
+    echo reg_resample -flo $target -res $resampled -ref $ref_file -NN 0
+    reg_resample -flo $target -res $resampled -ref $ref_file -NN 0
 
     ls $target >> $targets_file
     ls $resampled >> $targets_file_resampled
@@ -124,18 +137,22 @@ rm -f $targets_file $targets_file_resampled
 # flirt -in $seed_mask -out $seed_resampled -applyxfm -ref $mask_file -interp nearestneighbour
 
  #flirt incorrect, replace with reg_resample
- echo reg_resample -flo $seed_mask -res $seed_resmpled -ref $mask_file -NN 0
- reg_resample -flo $seed_mask -res $seed_resmpled -ref $mask_file -NN 0
+ echo reg_resample -flo $seed_mask -res $seed_resampled -ref $ref_file -NN 0
+ reg_resample -flo $seed_mask -res $seed_resampled -ref $ref_file -NN 0
 
  probtrack_opts="-l --onewaycondition -c 0.2 -S 2000 --steplength=0.5 -P 5000 --fibthresh=0.01 --distthresh=0.0 --sampvox=0.0 --forcedir --opd --os2t --s2tastext"
-# probtrack_opts="-l --onewaycondition -c 0.2 -S 2000 --steplength=0.5 -P 1000 --fibthresh=0.01 --distthresh=0.0 --sampvox=0.0 --forcedir --opd --os2t --s2tastext"
 
 if [ -n "$avoid_seg" ]
 then
     avoid_mask=${subj_dir}/$avoid_seg
+    avoid_mask_resampled=$parc_dir/avoid_mask_resampled.nii.gz
+    
     if [ -e $avoid_mask ]
     then
-     probtrack_opts="$probtrack_opts --avoid=$avoid_mask"
+     
+     echo reg_resample -flo $avoid_mask -res $avoid_mask_resampled -ref $ref_file -NN 0
+     reg_resample -flo $avoid_mask -res $avoid_mask_resampled -ref $ref_file -NN 0
+     probtrack_opts="$probtrack_opts --avoid=$avoid_mask_resampled"
  else
      echo "WARNING: avoid_seg $avoid_mask not found, not using --avoid"
 
@@ -143,8 +160,8 @@ then
 
 fi
 
- echo probtrackx2 -x $seed_mask --targetmasks=$targets_file -m $mask_file -s $samples_base --dir=$output_dir $probtrack_opts
- probtrackx2 -x $seed_mask --targetmasks=$targets_file -m $mask_file -s $samples_base --dir=$output_dir $probtrack_opts
+ probtrackx2 --seedref=$ref_file -x  $seed_resampled --targetmasks=$targets_file_resampled -m $mask_file -s $samples_base --dir=$output_dir $probtrack_opts
+ #probtrackx2 --seedref=$seed_mask -x  $seed_mask --targetmasks=$targets_file -m $mask_file -s $samples_base --dir=$output_dir $probtrack_opts
 
 
 done #subj
