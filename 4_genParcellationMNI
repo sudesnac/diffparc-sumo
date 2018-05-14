@@ -79,8 +79,7 @@ fi
   norm_seeds=$parc_dir/probtrack/seeds_to_${name}_resampled.normVol.nii.gz
 
    echo fslmaths $in_seeds -div $vol $norm_seeds
-#   fslmaths $in_seeds -div $vol $norm_seeds - disable normalization for a sec..
-   fslmaths $in_seeds -mul 1 $norm_seeds
+   fslmaths $in_seeds -div $vol $norm_seeds 
  
  
 
