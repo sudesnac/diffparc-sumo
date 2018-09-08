@@ -92,6 +92,16 @@ subj_dir=$output_dir/$subj
   echo mri_convert $mask_file -vs 1 1 1 $ref_file  -rt nearest
   mri_convert $mask_file -vs 1 1 1 $ref_file  -rt nearest
 
+  csf_t1space=$subj_dir/t1/t1.brain.inorm.fast_prob_0.nii.gz
+  csf_dwispace=$parc_dir/csf_prob.nii.gz
+  csf_mask=$parc_dir/csf_prob_th.nii.gz
+
+  #get probabilistic csf segmentation
+  echo reg_resample -flo $csf_t1space -ref $ref_file -res $csf_dwispace
+  reg_resample -flo $csf_t1space -ref $ref_file -res $csf_dwispace
+
+  echo fslmaths $csf_dwispace -thr 0.5 -bin $csf_mask
+  fslmaths $csf_dwispace -thr 0.5 -bin $csf_mask
 
   echo "making ref file"
 
@@ -160,7 +170,8 @@ then
 
 fi
 
- probtrackx2 --seedref=$ref_file -x  $seed_resampled --targetmasks=$targets_file_resampled -m $mask_file -s $samples_base --dir=$output_dir $probtrack_opts
+# probtrackx2 --seedref=$ref_file -x  $seed_resampled --targetmasks=$targets_file_resampled -m $mask_file -s $samples_base --dir=$output_dir $probtrack_opts
+ probtrackx2 --seedref=$seed_resampled -x  $seed_resampled --targetmasks=$targets_file_resampled -m $mask_file -s $samples_base --dir=$output_dir $probtrack_opts --stop $csf_mask
  #probtrackx2 --seedref=$seed_mask -x  $seed_mask --targetmasks=$targets_file -m $mask_file -s $samples_base --dir=$output_dir $probtrack_opts
 
 

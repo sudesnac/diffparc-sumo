@@ -15,6 +15,17 @@ subj=$1
  echo $subj
 }
 
+function fixsess {
+#add on ses- if not exists
+sess=$1
+ if [ ! "${sess:0:4}" = "ses-" ]
+ then
+  sess="sub-$sess"
+ fi
+ echo $sess
+}
+
+
 execpath=`dirname $0`
 execpath=`realpath $execpath`
 
@@ -37,7 +48,6 @@ legacy_dwi_path=dwi/uncorrected_denoise_unring_eddy
 
 if [ "$#" -lt 3 ]
 then
- echo ""
  echo "Usage: diffparcellate bids_dir output_dir {participant1,group1,participant2,group2,participant3,participant4,group3} <optional arguments>"
  echo ""
  echo " Required arguments:"
@@ -325,27 +335,49 @@ then
 
  #add on sub- if not exists
   subj=`fixsubj $subj`
- 
- N_t1w=`eval ls $in_bids/$subj/anat/${subj}${searchstring_t1w} | wc -l`
- in_t1w=`eval ls $in_bids/$subj/anat/${subj}${searchstring_t1w} | head -n 1`
+
+   #loop over sub- and sub-/ses-
+    for subjfolder in `ls -d $in_bids/$subj/dwi $in_bids/$subj/ses-*/dwi 2> /dev/null`
+    do
+
+        subj_sess_dir=${subjfolder%/dwi}
+        subj_sess_dir=${subj_sess_dir##$in_bids/}
+        if echo $subj_sess_dir | grep -q '/'
+        then
+            sess=${subj_sess_dir##*/}
+            subj_sess_prefix=${subj}_${sess}
+        else
+            subj_sess_prefix=${subj}
+        fi
+        echo subjfolder $subjfolder
+        echo subj_sess_dir $subj_sess_dir
+        echo sess $sess
+        echo subj_sess_prefix $subj_sess_prefix
+
+
+
+
+
+N_t1w=`eval ls $in_bids/$subj_sess_dir/anat/${subj_sess_prefix}${searchstring_t1w} | wc -l`
+in_t1w=`eval ls $in_bids/$subj_sess_dir/anat/${subj_sess_prefix}${searchstring_t1w} | head -n 1`
 
  echo Found $N_t1w matching T1w, using first found: $in_t1w
 
   pushd $work_folder
- echo importT1 $in_t1w $subj
-  importT1 $in_t1w $subj
+ echo importT1 $in_t1w $subj_sess_prefix
+  importT1 $in_t1w $subj_sess_prefix
   popd
 
   if [ -n "$reg_init_subj" ]
   then
-	echo $execpath/2.1_processT1_regFail $work_folder $reg_init_subj $subj
-	$execpath/2.1_processT1_regFail $work_folder $reg_init_subj $subj
+	echo $execpath/2.1_processT1_regFail $work_folder $reg_init_subj $subj_sess_prefix
+	$execpath/2.1_processT1_regFail $work_folder $reg_init_subj $subj_sess_prefix
   else
- 	echo $execpath/2.0_processT1 $work_folder $subj
-	 $execpath/2.0_processT1 $work_folder $subj
+ 	echo $execpath/2.0_processT1 $work_folder $subj_sess_prefix
+	 $execpath/2.0_processT1 $work_folder $subj_sess_prefix
   fi
 
-
+ done #ses
  done
 
  elif [ "$analysis_level" = "group1" ]
@@ -358,11 +390,37 @@ then
     qclist=$work_folder/etc/subjects
     rm -f $qclist
     touch $qclist
+
+
+
     for subj in $subjlist
     do
         subj=`fixsubj $subj`
-        echo $subj >> $qclist
+
+    #loop over sub- and sub-/ses-
+    for subjfolder in `ls -d $in_bids/$subj/dwi $in_bids/$subj/ses-*/dwi 2> /dev/null`
+    do
+
+        subj_sess_dir=${subjfolder%/dwi}
+        subj_sess_dir=${subj_sess_dir##$in_bids/}
+        if echo $subj_sess_dir | grep -q '/'
+        then
+            sess=${subj_sess_dir##*/}
+            subj_sess_prefix=${subj}_${sess}
+        else
+            subj_sess_prefix=${subj}
+        fi
+        echo subjfolder $subjfolder
+        echo subj_sess_dir $subj_sess_dir
+        echo sess $sess
+        echo subj_sess_prefix $subj_sess_prefix
+
+
+        echo $subj_sess_prefix >> $qclist
+
+    done #ses
     done
+
     $execpath/3_genQC $work_folder $qclist
 
 
@@ -390,24 +448,45 @@ then
  #add on sub- if not exists
   subj=`fixsubj $subj`
 
+   #loop over sub- and sub-/ses-
+    for subjfolder in `ls -d $in_bids/$subj/dwi $in_bids/$subj/ses-*/dwi 2> /dev/null`
+    do
+
+        subj_sess_dir=${subjfolder%/dwi}
+        subj_sess_dir=${subj_sess_dir##$in_bids/}
+        if echo $subj_sess_dir | grep -q '/'
+        then
+            sess=${subj_sess_dir##*/}
+            subj_sess_prefix=${subj}_${sess}
+        else
+            subj_sess_prefix=${subj}
+        fi
+        echo subjfolder $subjfolder
+        echo subj_sess_dir $subj_sess_dir
+        echo sess $sess
+        echo subj_sess_prefix $subj_sess_prefix
+
+
+
   if [ -n "$bedpost_root" ]
   then
 
-   echo $execpath/4_genParcellationMNI $work_folder $bedpost_root $subj
-   $execpath/4_genParcellationMNI $work_folder $bedpost_root $subj
+   echo $execpath/4_genParcellationMNI $work_folder $bedpost_root $subj_sess_prefix
+   $execpath/4_genParcellationMNI $work_folder $bedpost_root $subj_sess_prefix
   
 
 # skip this, since accomplished by prepdwi participant2 level
-   #echo $execpath/4.1_genTractMaps $work_folder $bedpost_root $subj
-   #$execpath/4.1_genTractMaps $work_folder $bedpost_root $subj
+   #echo $execpath/4.1_genTractMaps $work_folder $bedpost_root $subj_sess_prefix
+   #$execpath/4.1_genTractMaps $work_folder $bedpost_root $subj_sess_prefix
  
-   echo $execpath/4.2_genParcellationNlinMNI $work_folder $subj
-   $execpath/4.2_genParcellationNlinMNI $work_folder $subj
+   echo $execpath/4.2_genParcellationNlinMNI $work_folder $subj_sess_prefix
+   $execpath/4.2_genParcellationNlinMNI $work_folder $subj_sess_prefix
 
-   echo $execpath/5_cleanupBIDS $work_folder $out_folder $subj
-   $execpath/5_cleanupBIDS $work_folder $out_folder $subj
+   echo $execpath/5_cleanupBIDS $work_folder $out_folder $subj_sess_prefix
+   $execpath/5_cleanupBIDS $work_folder $out_folder $subj_sess_prefix
   fi
 
+ done #ses
  done
 
  elif [ "$analysis_level" = "group2" ]
@@ -422,7 +501,30 @@ then
     for subj in $subjlist
     do
         subj=`fixsubj $subj`
-        echo $subj >> $list
+
+
+    #loop over sub- and sub-/ses-
+    for subjfolder in `ls -d $in_bids/$subj/dwi $in_bids/$subj/ses-*/dwi 2> /dev/null`
+    do
+
+        subj_sess_dir=${subjfolder%/dwi}
+        subj_sess_dir=${subj_sess_dir##$in_bids/}
+        if echo $subj_sess_dir | grep -q '/'
+        then
+            sess=${subj_sess_dir##*/}
+            subj_sess_prefix=${subj}_${sess}
+        else
+            subj_sess_prefix=${subj}
+        fi
+        echo subjfolder $subjfolder
+        echo subj_sess_dir $subj_sess_dir
+        echo sess $sess
+        echo subj_sess_prefix $subj_sess_prefix
+
+
+
+        echo $subj_sess_prefix >> $list
+    done #ses
     done
 
    # echo $execpath/8.1_computeThreshDiffParcVolumeLeftRight $work_folder $list
@@ -462,16 +564,37 @@ then
       #add on sub- if not exists
       subj=`fixsubj $subj`
 
+      
+      #loop over sub- and sub-/ses-
+    for subjfolder in `ls -d $in_bids/$subj/dwi $in_bids/$subj/ses-*/dwi 2> /dev/null`
+    do
+
+        subj_sess_dir=${subjfolder%/dwi}
+        subj_sess_dir=${subj_sess_dir##$in_bids/}
+        if echo $subj_sess_dir | grep -q '/'
+        then
+            sess=${subj_sess_dir##*/}
+            subj_sess_prefix=${subj}_${sess}
+        else
+            subj_sess_prefix=${subj}
+        fi
+        echo subjfolder $subjfolder
+        echo subj_sess_dir $subj_sess_dir
+        echo sess $sess
+        echo subj_sess_prefix $subj_sess_prefix
+
+
       source $parcellate_cfg
 
-      echo propLabels_reg_bspline_f3d t1 $labelgroup_prob $atlas  $subj -L
-      propLabels_reg_bspline_f3d t1 $labelgroup_prob $atlas  $subj -L
-      echo propLabels_backwards_intersubj_aladin t1  ${labelgroup_prob}_bspline_f3d_$atlas  $atlas $subj -L
-      propLabels_backwards_intersubj_aladin t1  ${labelgroup_prob}_bspline_f3d_$atlas  $atlas $subj -L
-      echo computeSurfaceDisplacementsSingleStructure $subj $parcellate_cfg  -N
-      computeSurfaceDisplacementsSingleStructure $subj $parcellate_cfg  -N
+      echo propLabels_reg_bspline_f3d t1 $labelgroup_prob $atlas  $subj_sess_prefix -L
+      propLabels_reg_bspline_f3d t1 $labelgroup_prob $atlas  $subj_sess_prefix -L
+      echo propLabels_backwards_intersubj_aladin t1  ${labelgroup_prob}_bspline_f3d_$atlas  $atlas $subj_sess_prefix -L
+      propLabels_backwards_intersubj_aladin t1  ${labelgroup_prob}_bspline_f3d_$atlas  $atlas $subj_sess_prefix -L
+      echo computeSurfaceDisplacementsSingleStructure $subj_sess_prefix $parcellate_cfg  -N
+      computeSurfaceDisplacementsSingleStructure $subj_sess_prefix $parcellate_cfg  -N
 
-     done
+     done #ses
+ done
      
      popd
 
@@ -488,9 +611,31 @@ then
       #add on sub- if not exists
       subj=`fixsubj $subj`
 
-      echo $execpath/9.2_runSurfBasedTractography $work_folder $bedpost_root $parcellate_cfg $subj
-      $execpath/9.2_runSurfBasedTractography $work_folder $bedpost_root $parcellate_cfg $subj
 
+      #loop over sub- and sub-/ses-
+    for subjfolder in `ls -d $in_bids/$subj/dwi $in_bids/$subj/ses-*/dwi 2> /dev/null`
+    do
+
+        subj_sess_dir=${subjfolder%/dwi}
+        subj_sess_dir=${subj_sess_dir##$in_bids/}
+        if echo $subj_sess_dir | grep -q '/'
+        then
+            sess=${subj_sess_dir##*/}
+            subj_sess_prefix=${subj}_${sess}
+        else
+            subj_sess_prefix=${subj}
+        fi
+        echo subjfolder $subjfolder
+        echo subj_sess_dir $subj_sess_dir
+        echo sess $sess
+        echo subj_sess_prefix $subj_sess_prefix
+
+
+
+      echo $execpath/9.2_runSurfBasedTractography $work_folder $bedpost_root $parcellate_cfg $subj_sess_prefix
+      $execpath/9.2_runSurfBasedTractography $work_folder $bedpost_root $parcellate_cfg $subj_sess_prefix
+
+    done #ses
      done
      
 
@@ -507,7 +652,27 @@ then
     for subj in $subjlist
     do
         subj=`fixsubj $subj`
-        echo $subj >> $list
+
+#loop over sub- and sub-/ses-
+    for subjfolder in `ls -d $in_bids/$subj/dwi $in_bids/$subj/ses-*/dwi 2> /dev/null`
+    do
+
+        subj_sess_dir=${subjfolder%/dwi}
+        subj_sess_dir=${subj_sess_dir##$in_bids/}
+        if echo $subj_sess_dir | grep -q '/'
+        then
+            sess=${subj_sess_dir##*/}
+            subj_sess_prefix=${subj}_${sess}
+        else
+            subj_sess_prefix=${subj}
+        fi
+        echo subjfolder $subjfolder
+        echo subj_sess_dir $subj_sess_dir
+        echo sess $sess
+        echo subj_sess_prefix $subj_sess_prefix
+
+        echo $subj_sess_prefix >> $list
+    done #ses
     done
 
     source $parcellate_cfg

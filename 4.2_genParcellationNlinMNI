@@ -69,8 +69,8 @@ atlas_t1=${atlas}/t1/t1.brain.nii.gz
 
 dti_parc=$out_dir/diffusion_parcellation.masked.nii.gz
 
-if [ ! -e $dti_parc ]
-then
+#if [ ! -e $dti_parc ]
+#then
 
 
 
@@ -81,7 +81,7 @@ seed_mask_atlas=$out_dir/seedmask.nii.gz
 echo reg_resample -flo $seed_mask -res $seed_mask_atlas -cpp $nlinxfm  -ref $atlas_t1 -NN 0
 reg_resample -flo $seed_mask -res $seed_mask_atlas -cpp $nlinxfm  -ref $atlas_t1 -NN 0
 
-for track in `ls $track_dir/seeds_to_*_resampled.normVol.nii.gz`
+for track in `ls $track_dir/seeds_to_*_resampled.nii.gz`
 do
 
 target=${track##*seeds_to_}
@@ -110,10 +110,10 @@ do
 
 
  
-  map=$out_dir/seeds_to_${lbl}_resampled.normVol.nii.gz
+  map=$out_dir/seeds_to_${lbl}_resampled.nii.gz
 
-  map_left=$out_dir/seeds_to_${lbl}_resampled.normVol.mask_left.nii.gz
-  map_right=$out_dir/seeds_to_${lbl}_resampled.normVol.mask_right.nii.gz
+  map_left=$out_dir/seeds_to_${lbl}_resampled.mask_left.nii.gz
+  map_right=$out_dir/seeds_to_${lbl}_resampled.mask_right.nii.gz
 
   #mask with left/right  ROI:
   fslmaths $map -roi $roi_left $map_left
@@ -131,7 +131,7 @@ done #done targetlist
  echo  prob4DtoMaxProb $out_dir/seeds.4d.nii.gz $threshold $dti_parc
  prob4DtoMaxProb $out_dir/seeds.4d.nii.gz $threshold $dti_parc
 
- fi
+# fi
 
 done  #subject
 

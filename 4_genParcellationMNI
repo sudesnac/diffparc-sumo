@@ -150,7 +150,7 @@ reg_resample -flo $seed_mask -res $seed_mask_atlas -aff $linxfm -ref $atlas_t1 -
 dti_parc=$out_dir/diffusion_parcellation.masked.nii.gz
 dti_parc_subj=$track_dir/diffusion_parcellation.masked.nii.gz
 
-for track in `ls $track_dir/seeds_to_*_resampled.normVol.nii.gz`
+for track in `ls $track_dir/seeds_to_*_resampled.nii.gz`
 do
 
 target=${track##*seeds_to_}
@@ -182,10 +182,10 @@ do
   lbl=${lbl_line%%,*}
 
  
-  map=$out_dir/seeds_to_${lbl}_resampled.normVol.nii.gz
+  map=$out_dir/seeds_to_${lbl}_resampled.nii.gz
 
-  map_left=$out_dir/seeds_to_${lbl}_resampled.normVol.mask_left.nii.gz
-  map_right=$out_dir/seeds_to_${lbl}_resampled.normVol.mask_right.nii.gz
+  map_left=$out_dir/seeds_to_${lbl}_resampled.mask_left.nii.gz
+  map_right=$out_dir/seeds_to_${lbl}_resampled.mask_right.nii.gz
 
   #mask with left/right  ROI:
   fslmaths $map -roi $roi_left $map_left
