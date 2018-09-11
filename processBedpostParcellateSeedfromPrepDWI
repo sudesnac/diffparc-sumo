@@ -1,8 +1,8 @@
 #!/bin/bash
 
-if [ "$#" -lt 2 ]
+if [ "$#" -lt 5 ]
 then
- echo "Usage $0 <in_bedpost_root> <parcellate_cfg> <subjid/list>"
+ echo "Usage $0 <in_bedpost_root> <parcellate_cfg> <seed_res> <nsamples> <subjid/list>"
  echo ""
  echo "List of standard parcellate_cfgs: "
  pushd $PIPELINE_CFG_DIR/parcellate > /dev/null
@@ -15,8 +15,10 @@ fi
 
 in_bedpost_root=$1  
 parcellate_cfg=$2
+seed_res=$3
+nsamples=$4
 
-
+shift 4
 if [ ! -e $in_cfg ]
 then
  parcellate_cfg=$PIPELINE_CFG_DIR/parcellate/$parcellate_cfg
@@ -32,7 +34,6 @@ fi
 echo "Sourcing $parcellate_cfg"
 source $parcellate_cfg
 
-shift 2
 
 
 output_dir=.
@@ -89,8 +90,8 @@ subj_dir=$output_dir/$subj
  ref_file=$parc_dir/seed_ref.nii.gz
 
  #resample to isotropic 1mm for higher-res seed space
-  echo mri_convert $mask_file -vs 1 1 1 $ref_file  -rt nearest
-  mri_convert $mask_file -vs 1 1 1 $ref_file  -rt nearest
+  echo mri_convert $mask_file -vs $seed_res $seed_res $seed_res $ref_file  -rt nearest
+  mri_convert $mask_file -vs $seed_res $seed_res $seed_res $ref_file  -rt nearest
 
   csf_t1space=$subj_dir/t1/t1.brain.inorm.fast_prob_0.nii.gz
   csf_dwispace=$parc_dir/csf_prob.nii.gz
@@ -150,7 +151,7 @@ rm -f $targets_file $targets_file_resampled
  echo reg_resample -flo $seed_mask -res $seed_resampled -ref $ref_file -NN 0
  reg_resample -flo $seed_mask -res $seed_resampled -ref $ref_file -NN 0
 
- probtrack_opts="-l --onewaycondition -c 0.2 -S 2000 --steplength=0.5 -P 5000 --fibthresh=0.01 --distthresh=0.0 --sampvox=0.0 --forcedir --opd --os2t --s2tastext"
+ probtrack_opts="-l --onewaycondition -c 0.2 -S 2000 --steplength=0.5 -P $nsamples --fibthresh=0.01 --distthresh=0.0 --sampvox=0.0 --forcedir --opd --os2t --s2tastext --randfib 2"
 
 if [ -n "$avoid_seg" ]
 then
@@ -170,9 +171,7 @@ then
 
 fi
 
-# probtrackx2 --seedref=$ref_file -x  $seed_resampled --targetmasks=$targets_file_resampled -m $mask_file -s $samples_base --dir=$output_dir $probtrack_opts
  probtrackx2 --seedref=$seed_resampled -x  $seed_resampled --targetmasks=$targets_file_resampled -m $mask_file -s $samples_base --dir=$output_dir $probtrack_opts --stop $csf_mask
- #probtrackx2 --seedref=$seed_mask -x  $seed_mask --targetmasks=$targets_file -m $mask_file -s $samples_base --dir=$output_dir $probtrack_opts
 
 
 done #subj

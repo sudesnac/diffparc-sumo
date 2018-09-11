@@ -45,6 +45,8 @@ legacy_dwi_proc=0
 legacy_dwi_type=dwi_eddy
 legacy_dwi_path=dwi/uncorrected_denoise_unring_eddy
 
+seed_res=2
+nsamples=50000
 
 if [ "$#" -lt 3 ]
 then
@@ -57,6 +59,8 @@ then
  echo "          [--matching_T1w MATCHING_STRING"
  echo "          [--reg_init_participant PARTICIPANT_LABEL"
  echo "          [--parcellate_type PARCELLATE_TYPE (default: striatum_cortical; can alternatively specify config file) "
+ echo "          [--seed_res RES_MM ] (default: 2)"
+ echo "          [--nsamples N ] (default: 50000)"
  echo ""
  echo "	Analysis levels:"
  echo "		participant1: T1 pre-processing and atlas registration"
@@ -140,6 +144,40 @@ while :; do
          die 'error: "--parcellate_type" requires a non-empty option argument.'
           ;;
 
+
+#-------------------
+
+           --seed_res )       # takes an option argument; ensure it has been specified.
+          if [ "$2" ]; then
+                seed_res=$2
+                  shift
+	      else
+              die 'error: "--seed_res" requires a non-empty option argument.'
+            fi
+              ;;
+     --seed_res=?*)
+          seed_res=${1#*=} # delete everything up to "=" and assign the remainder.
+            ;;
+          --seed_res=)         # handle the case of an empty --participant=
+         die 'error: "--seed_res" requires a non-empty option argument.'
+          ;;
+
+#-------------------
+
+           --nsamples )       # takes an option argument; ensure it has been specified.
+          if [ "$2" ]; then
+                nsamples=$2
+                  shift
+	      else
+              die 'error: "--nsamples" requires a non-empty option argument.'
+            fi
+              ;;
+     --nsamples=?*)
+          nsamples=${1#*=} # delete everything up to "=" and assign the remainder.
+            ;;
+          --nsamples=)         # handle the case of an empty --participant=
+         die 'error: "--nsamples" requires a non-empty option argument.'
+          ;;
 
 
 #-------------------
@@ -471,8 +509,8 @@ then
   if [ -n "$bedpost_root" ]
   then
 
-   echo $execpath/4_genParcellationMNI $work_folder $bedpost_root $subj_sess_prefix
-   $execpath/4_genParcellationMNI $work_folder $bedpost_root $subj_sess_prefix
+   echo $execpath/4_genParcellationMNI $work_folder $bedpost_root $seed_res $nsamples $subj_sess_prefix
+   $execpath/4_genParcellationMNI $work_folder $bedpost_root $seed_res $nsamples $subj_sess_prefix
   
 
 # skip this, since accomplished by prepdwi participant2 level

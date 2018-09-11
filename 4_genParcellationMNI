@@ -2,12 +2,12 @@
 
 function usage {
  echo ""
- echo "Usage: ${0##*/}   <working dir> <in_bedpost_root> <subjids..>"
+ echo "Usage: ${0##*/}   <working dir> <in_bedpost_root> <seed_res> <nsamples> <subjids..>"
  echo "" 
  
 }
 
-if [ "$#" -lt 2 ]
+if [ "$#" -lt 4 ]
 then
  usage
  exit 1
@@ -19,7 +19,10 @@ execpath=`realpath $execpath`
 
 work_dir=$1
 in_bedpost_root=$2
-shift 2
+seed_res=$3
+nsamples=$4
+
+shift 4
 
 if [ -e "$in_bedpost_root" ] 
 then
@@ -45,7 +48,7 @@ then
  then
   processBedpostParcellateSeed uncorrected_denoise_unring_eddy $parcellate_cfg $subj
  else
-  $execpath/processBedpostParcellateSeedfromPrepDWI $in_bedpost_root $parcellate_cfg $subj
+  $execpath/processBedpostParcellateSeedfromPrepDWI $in_bedpost_root $parcellate_cfg $seed_res $nsamples $subj
  fi
 fi
 
