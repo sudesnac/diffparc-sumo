@@ -151,7 +151,7 @@ rm -f $targets_file $targets_file_resampled
  echo reg_resample -flo $seed_mask -res $seed_resampled -ref $ref_file -NN 0
  reg_resample -flo $seed_mask -res $seed_resampled -ref $ref_file -NN 0
 
- probtrack_opts="-l --onewaycondition -c 0.2 -S 2000 --steplength=0.5 -P $nsamples --fibthresh=0.01 --distthresh=0.0 --sampvox=0.0 --forcedir --opd --os2t --s2tastext --randfib 2"
+ probtrack_opts="-l --onewaycondition -c 0.2 -S 2000 --steplength=0.5 -P $nsamples --fibthresh=0.01 --distthresh=0.0 --sampvox=0.0 --forcedir --opd --os2t --s2tastext --randfib=2"
 
 if [ -n "$avoid_seg" ]
 then
