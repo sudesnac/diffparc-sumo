@@ -59,7 +59,7 @@ pushd $work_dir
 
 track_dir=bedpost.${parcellation_name}/probtrack_parcels_to_targets
 
-computeSegStats StriatumTargets_Hemi.csv $track_dir/seg_paths.nii.gz dwi/$metric.nii.gz $subjlist > $out_csv
+$execpath/computeSegStats $target_labels_hemi_txt  $track_dir/seg_paths.nii.gz dwi/$metric.nii.gz $subjlist > $out_csv
 
 popd
 

@@ -57,7 +57,7 @@ else
 track_dir=bedpost.${parcellation_name}/probtrack
 fi
 
-computeSegStats StriatumTargets_Hemi.csv $track_dir/diffusion_parcellation.masked.nii.gz dwi/$metric.nii.gz $subjlist > $out_csv
+$execpath/computeSegStats $target_labels_hemi_txt $track_dir/diffusion_parcellation.masked.nii.gz dwi/$metric.nii.gz $subjlist > $out_csv
 
 popd
 
