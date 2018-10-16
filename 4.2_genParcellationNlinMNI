@@ -128,8 +128,8 @@ done #done targetlist
  fslmerge -t $out_dir/seeds.4d.nii.gz $seedlist
 
  threshold=0.0001
- echo  prob4DtoMaxProb $out_dir/seeds.4d.nii.gz $threshold $dti_parc
- prob4DtoMaxProb $out_dir/seeds.4d.nii.gz $threshold $dti_parc
+ echo  $execpath/prob4DtoMaxProb $out_dir/seeds.4d.nii.gz $threshold $dti_parc
+ $execpath/prob4DtoMaxProb $out_dir/seeds.4d.nii.gz $threshold $dti_parc
 
 # fi
 

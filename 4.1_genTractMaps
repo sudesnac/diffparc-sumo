@@ -10,6 +10,10 @@ fi
 work_folder=$1
 in_bedpost_root=$2
 
+execpath=`dirname $0`
+execpath=`realpath $execpath`
+
+
 echo "Sourcing $parcellate_cfg"
 source $parcellate_cfg
 
@@ -207,8 +211,8 @@ done #done targetlist
    #->arbitrary heuristic based on 100probseeds & striatum  -> 50 " 
  threshold=`bashcalc "0.25*$vol/$probseeds"`
 
- echo  prob4DtoMaxProb $out_dir/seeds.4d.nii.gz $threshold $tracts_parc
- prob4DtoMaxProb $out_dir/seeds.4d.nii.gz $threshold $tracts_parc
+ echo  $execpath/prob4DtoMaxProb $out_dir/seeds.4d.nii.gz $threshold $tracts_parc
+ $execpath/prob4DtoMaxProb $out_dir/seeds.4d.nii.gz $threshold $tracts_parc
 
  #bring back to subject space
  echo reg_resample -flo $tracts_parc -res $tracts_parc_subj -aff $linxfm_inv -ref $subj_t1 -NN 0
