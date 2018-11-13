@@ -23,7 +23,7 @@ in_prepdwi_dir=`cat $work_dir/etc/in_prepdwi_dir`
 
 subjlist=`realpath $subjlist`
 
-#mni_suffix=reg-affine_space-MNI152NLin2009cAsym
+#mni_suffix=reg-affine_space-$atlas
 subj_suffix=space-T1w
 
 proctype=FSL

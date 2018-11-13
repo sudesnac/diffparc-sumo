@@ -22,7 +22,7 @@ shift 3
 
 subjlist=`realpath $subjlist`
 
-mni_suffix=reg-affine_space-MNI152NLin2009cAsym
+mni_suffix=reg-affine_space-$atlas
 subj_suffix=space-T1w
 
 out_csv_atlas=`realpath $out_folder`/volumes_${bids_tags}_diffparc_$mni_suffix.csv
