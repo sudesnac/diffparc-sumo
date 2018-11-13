@@ -26,6 +26,9 @@ subjlist=`realpath $subjlist`
 #mni_suffix=reg-affine_space-MNI152NLin2009cAsym
 subj_suffix=space-T1w
 
+
+proctype=FSL
+
 for metric in FA MD
 do
 
@@ -36,7 +39,7 @@ out_csv=`realpath $out_folder`/dti-${metric}_${bids_tags}_diffparc_$subj_suffix.
 for subj in `cat $subjlist`
 do
 
-in_dti=$in_prepdwi_dir/prepdwi/$subj/dwi/${subj}_dwi_space-T1w_$metric.nii.gz
+in_dti=$in_prepdwi_dir/prepdwi/$subj/dwi/${subj}_dwi_space-T1w_proc-${proctype}_$metric.nii.gz
 mkdir -p $work_dir/$subj/dwi
 out_dti=$work_dir/$subj/dwi/$metric.nii.gz
 if [ ! -e $out_dti ]
