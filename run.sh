@@ -270,7 +270,7 @@ then
      parcellate_cfg=$execpath/cfg/parcellate.$parcellate_type.cfg 
  elif [ -e $parcellate_type ]
   then 
-         parcellate_cfg=$parcellate_type
+         parcellate_cfg=`realpath $parcellate_type`
      else
 
  echo "ERROR: --parcellate_type $parcellate_type does not exist!"
