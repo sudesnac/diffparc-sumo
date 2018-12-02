@@ -2,7 +2,7 @@
 
 if [ "$#" -lt 2 ]
 then
- echo "Usage $0 <in_work_dir> <in_bedpost_root> <parcellate_cfg> <subjid/list>"
+ echo "Usage $0 <in_work_dir> <in_bedpost_root> <parcellate_cfg> <nseeds> <subjid/list>"
  echo ""
  echo "List of standard parcellate_cfgs: "
  pushd $PIPELINE_CFG_DIR/parcellate > /dev/null
@@ -15,7 +15,8 @@ fi
 work_dir=$1
 in_bedpost_root=$2
 parcellate_cfg=$3
-shift 3
+nseeds=$4
+shift 4
 
 
 execpath=`dirname $0`
@@ -124,7 +125,7 @@ probtrackx2 \
 --target2=$brainmask_bin \
 -V 1 \
 -l  --onewaycondition -c 0.2 -S 2000 --steplength=0.5 \
--P 1000 --fibthresh=0.01 --distthresh=0.0 --sampvox=0.0  $probtrack_opts
+-P $nseeds --fibthresh=0.01 --distthresh=0.0 --sampvox=0.0  $probtrack_opts
 
 #ProbtrackX argument info
 #--------------------------

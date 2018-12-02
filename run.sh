@@ -45,8 +45,8 @@ legacy_dwi_proc=0
 legacy_dwi_type=dwi_eddy
 legacy_dwi_path=dwi/uncorrected_denoise_unring_eddy
 
-seed_res=2
-nsamples=50000
+seed_res=1
+nsamples=1000
 
 if [ "$#" -lt 3 ]
 then
@@ -713,8 +713,8 @@ then
 
 
 
-      echo $execpath/9.2_runSurfBasedTractography $work_folder $bedpost_root $parcellate_cfg $subj_sess_prefix
-      $execpath/9.2_runSurfBasedTractography $work_folder $bedpost_root $parcellate_cfg $subj_sess_prefix
+      echo $execpath/9.2_runSurfBasedTractography $work_folder $bedpost_root $parcellate_cfg $nsamples $subj_sess_prefix
+      $execpath/9.2_runSurfBasedTractography $work_folder $bedpost_root $parcellate_cfg $nsamples $subj_sess_prefix
 
     done #ses
      done
