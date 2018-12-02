@@ -59,8 +59,8 @@ then
  echo "          [--matching_T1w MATCHING_STRING"
  echo "          [--reg_init_participant PARTICIPANT_LABEL"
  echo "          [--parcellate_type PARCELLATE_TYPE (default: striatum_cortical; can alternatively specify config file) "
- echo "          [--seed_res RES_MM ] (default: 2)"
- echo "          [--nsamples N ] (default: 50000)"
+ echo "          [--seed_res RES_MM ] (default: 1)"
+ echo "          [--nsamples N ] (default: 1000)"
  echo ""
  echo "	Analysis levels:"
  echo "		participant1: T1 pre-processing and atlas registration"
@@ -551,10 +551,14 @@ then
    echo $execpath/4_genParcellationMNI $work_folder $bedpost_root $seed_res $nsamples $subj_sess_prefix
    $execpath/4_genParcellationMNI $work_folder $bedpost_root $seed_res $nsamples $subj_sess_prefix
   
-
-# skip this, since accomplished by prepdwi participant2 level
-   #echo $execpath/4.1_genTractMaps $work_folder $bedpost_root $subj_sess_prefix
-   #$execpath/4.1_genTractMaps $work_folder $bedpost_root $subj_sess_prefix
+   nsamples_tracts=`bashcalc "scale=0; $nsamples/100"`
+   if [ "$nsamples_tracts" -lt 10 ]
+   then
+	   nsamples_tracts=10
+   fi
+   echo "using N=$nsamples_tracts probabilistic tracts for simple tract pathway maps"
+   echo $execpath/4.1_genTractMaps $work_folder $bedpost_root $nsamples_tracts $subj_sess_prefix
+   $execpath/4.1_genTractMaps $work_folder $bedpost_root $nsamples_tracts $subj_sess_prefix
  
    echo $execpath/4.2_genParcellationNlinMNI $work_folder $subj_sess_prefix
    $execpath/4.2_genParcellationNlinMNI $work_folder $subj_sess_prefix
