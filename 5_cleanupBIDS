@@ -31,9 +31,9 @@ source $parcellate_cfg
 for subj in $@
 do
 
-
 track_dir=$work_dir/$subj/bedpost.${parcellation_name}/probtrack
 
+t1w_subj=$work_dir/$subj/t1/t1.brain.inorm.nii.gz
 dti_parc_subj=$track_dir/diffusion_parcellation.masked.nii.gz
 dti_parc_subj_mni=$track_dir/$atlas/diffusion_parcellation.masked.nii.gz
 
@@ -43,16 +43,18 @@ paths_parc_subj=$work_dir/$subj/bedpost.${parcellation_name}/probtrack_parcels_t
 out_subj_dir=$out_bids/$subj/anat
 mkdir -p $out_subj_dir
 
+out_t1w=$out_subj_dir/${subj}_T1w.nii.gz
 out_parc=$out_subj_dir/${subj}_space-T1w_${bids_tags}_diffparc.nii.gz
 out_parc_mni=$out_subj_dir/${subj}_reg-affine_space-${atlas}_${bids_tags}_diffparc.nii.gz
 
 out_paths=$out_subj_dir/${subj}_space-T1w_${bids_tags}_pathsparc.nii.gz
 out_paths_mni=$out_subj_dir/${subj}_reg-affine_space-${atlas}_${bids_tags}_pathsparc.nii.gz
 
-cp -v $dti_parc_subj $out_parc
-cp -v $dti_parc_subj_mni $out_parc_mni
-cp -v $paths_parc_subj $out_paths
-cp -v $paths_parc_subj_mni $out_paths_mni
+ln -srfv $t1w_subj $out_t1w
+ln -srfv $dti_parc_subj $out_parc
+ln -srfv $dti_parc_subj_mni $out_parc_mni
+ln -srfv $paths_parc_subj $out_paths
+ln -srfv $paths_parc_subj_mni $out_paths_mni
 
 done #subj
 
