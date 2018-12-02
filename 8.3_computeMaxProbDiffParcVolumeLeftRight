@@ -39,8 +39,8 @@ track_dir=bedpost.${parcellation_name}/probtrack
 fi
 
 
-computeSegVolume StriatumTargets_Hemi.csv $track_dir/$atlas/diffusion_parcellation.masked.nii.gz  $subjlist > $out_csv_atlas
-computeSegVolume StriatumTargets_Hemi.csv $track_dir/diffusion_parcellation.masked.nii.gz  $subjlist > $out_csv
+computeSegVolume $target_labels_hemi_txt $track_dir/$atlas/diffusion_parcellation.masked.nii.gz  $subjlist > $out_csv_atlas
+computeSegVolume $target_labels_hemi_txt $track_dir/diffusion_parcellation.masked.nii.gz  $subjlist > $out_csv
 
 popd
 
