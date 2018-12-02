@@ -12,4 +12,4 @@ ENV PATH /diffparcellate/mial-depends:/diffparcellate/deps:/diffparcellate:$PATH
 #set below for runMatlabCmd
 ENV PIPELINE_TOOL_DIR /diffparcellate
 
-ENTRYPOINT ["/diffparcelate/run.sh"]
+ENTRYPOINT ["/diffparcellate/run.sh"]
