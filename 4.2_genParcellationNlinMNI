@@ -63,8 +63,8 @@ nlinxfm=$nlinreg_dir/ctrlpt_${subj}_to_${atlas}.nii.gz
 out_dir=$track_dir/nlinreg_$atlas
 mkdir -p $out_dir
 
-subj_t1=$subj_dir/t1/t1.brain.nii.gz
-atlas_t1=${atlas}/t1/t1.brain.nii.gz
+subj_t1=$subj_dir/t1/t1.brain.inorm.nii.gz
+atlas_t1=${atlas}/t1/t1.brain.inorm.nii.gz
 
 
 dti_parc=$out_dir/diffusion_parcellation.masked.nii.gz
