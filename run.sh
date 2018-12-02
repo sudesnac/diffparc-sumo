@@ -360,6 +360,29 @@ index_list=`realpath $index_list`
 #exports for called scripts
 export legacy_dwi_proc in_atlas_dir parcellate_cfg index_list cfg_dir
 
+
+#use symlinks instead of copying 
+for atlas_dir in `ls -d $in_atlas_dir/*`
+do
+ atlas_name=${atlas_dir##*/}
+
+
+ if ! test -h $work_folder/$atlas_name 
+ then
+	if test -d $work_folder/$atlas_name 
+	then
+
+	   echo "atlas exists and is not a symlink, so can remove it"
+   	   rm -rf $work_folder/$atlas_name
+    	fi
+	
+	echo ln -sfv $atlas_dir $work_folder/$atlas_name
+	 ln -sfv $atlas_dir $work_folder/$atlas_name
+
+ fi
+ 
+done
+
 echo $participants
 	
 
@@ -392,7 +415,20 @@ then
         echo sess $sess
         echo subj_sess_prefix $subj_sess_prefix
 
+	if [ -e $in_prepdwi_dir/work/$subj_sess_prefix/t1/t1.brain.inorm.nii.gz ]
+	then
+		echo "using pre-processed t1 from prepdwi"
+		mkdir -p $work_folder/$subj_sess_prefix/t1
+		mkdir -p $work_folder/$subj_sess_prefix/reg/
 
+		for infile in `ls $in_prepdwi_dir/work/$subj_sess_prefix/t1/* $in_prepdwi_dir/work/$subj_sess_prefix/reg/*/*/*`
+		do	
+			filepath=${infile%/*}	
+			filepath=${filepath##${in_prepdwi_dir}/work/}
+			mkdir -p $work_folder/$filepath
+			cp -v $infile $work_folder/$filepath
+		done
+	else
 
 
 
@@ -406,6 +442,8 @@ in_t1w=`eval ls $in_bids/$subj_sess_dir/anat/${subj_sess_prefix}${searchstring_t
   importT1 $in_t1w $subj_sess_prefix
   popd
 
+  fi #after import from bids or prepdwi
+
   if [ -n "$reg_init_subj" ]
   then
 	echo $execpath/2.1_processT1_regFail $work_folder $reg_init_subj $subj_sess_prefix
@@ -415,6 +453,7 @@ in_t1w=`eval ls $in_bids/$subj_sess_dir/anat/${subj_sess_prefix}${searchstring_t
 	 $execpath/2.0_processT1 $work_folder $subj_sess_prefix
   fi
 
+  
  done #ses
  done
 
