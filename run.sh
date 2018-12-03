@@ -716,6 +716,11 @@ then
       echo $execpath/9.2_runSurfBasedTractography $work_folder $bedpost_root $parcellate_cfg $nsamples $subj_sess_prefix
       $execpath/9.2_runSurfBasedTractography $work_folder $bedpost_root $parcellate_cfg $nsamples $subj_sess_prefix
 
+       pushd $work_folder      
+       runMatlabCmd  processSubjSurfData "'$subj_sess_prefix'" "'$in_prepdwi_dir'" "'$parcellation_name'" "'$target_labels_txt'"
+       popd
+
+
     done #ses
      done
      
