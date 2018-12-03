@@ -21,7 +21,15 @@ then
 fi
 
 output_dir=.
+
+#first check to see if abs path to config exists
+if [ ! -e $1 ]
+then
 label_cfg=$PIPELINE_CFG_DIR/labels/name_number/$1
+else 
+label_cfg=$1
+fi
+
 seg_path=$2
 
 if [ ! -e $label_cfg ]
