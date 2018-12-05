@@ -300,7 +300,7 @@ then
 	exit 1
 fi
 
-
+in_prepdwi_dir=`realpath $in_prepdwi_dir`
 
 
 if [ -e $in_bids ]
@@ -342,7 +342,7 @@ work_folder=`realpath $work_folder`
 #in_prepdwi_dir defined:
 #save it to file
 mkdir -p $work_folder/etc
-echo "`realpath $in_prepdwi_dir`" > $work_folder/etc/in_prepdwi_dir
+echo "$in_prepdwi_dir" > $work_folder/etc/in_prepdwi_dir
 
 
 #surf disp requires this (can edit later to build into that and remove this..)
@@ -716,6 +716,7 @@ then
       echo $execpath/9.2_runSurfBasedTractography $work_folder $bedpost_root $parcellate_cfg $nsamples $subj_sess_prefix
       $execpath/9.2_runSurfBasedTractography $work_folder $bedpost_root $parcellate_cfg $nsamples $subj_sess_prefix
 
+    source $parcellate_cfg
        pushd $work_folder      
        runMatlabCmd  processSubjSurfData "'$subj_sess_prefix'" "'$in_prepdwi_dir'" "'$parcellation_name'" "'$target_labels_txt'"
        popd
