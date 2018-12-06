@@ -33,26 +33,29 @@ for s=1:length(subjects)
     
     subj=subjects{s};
 
-    subj_mat=sprintf('subj_mat/%s',subj));
+    subj_mat=sprintf('subj_mat/%s',subj);
     load(subj_mat);
 
+    % FIX THIS l,r,l,r (not lllll rrrrr)
+    
     %left hemi
-    surfarea_table(s,1:length(targets)) = surfarea(1,:);
+    surfarea_table(s,1:2:end) = surfarea(1,:);
     %right hemi
-    surfarea_table(s,(length(targets)+1):end) = surfarea(2,:);
+    surfarea_table(s,2:2:end) = surfarea(2,:)';
 
     %left hemi
-    meansurfdisp_table(s,1:length(targets)) = meansurfdisp(1,:);
+    meansurfdisp_table(s,1:2:end) = meansurfdisp(1,:);
     %right hemi
-    meansurfdisp_table(s,(length(targets)+1):end) = meansurfdisp(2,:);
+    meansurfdisp_table(s,2:2:end) = meansurfdisp(2,:);
 
     %left hemi
-    mean_fa_table(s,1:length(targets)) = mean_fa(1,:);
+    mean_fa_table(s,1:2:end) = mean_fa(1,:);
     %right hemi
-    mean_fa_table(s,(length(targets)+1):end) = mean_fa(2,:);
+    mean_fa_table(s,2:2:end) = mean_fa(2,:);
 
 end
 
+r=1;
  var_names={};
  for t=1:length(targets)
      for h=1:2
@@ -61,9 +64,9 @@ end
      end
  end
 
-writetable(array2table(surfarea_table,'VariableNames',var_names,'RowNames',subjects)),'surfarea.csv','WriteRowNames',1,'WriteVariableNames',1);
-writetable(array2table(meansurfdisp_table,'VariableNames',var_names,'RowNames',subjects)),'meansurfdisp.csv','WriteRowNames',1,'WriteVariableNames',1);
-writetable(array2table(mean_fa_table,'VariableNames',var_names,'RowNames',subjects)),'mean_fa.csv','WriteRowNames',1,'WriteVariableNames',1);
+writetable(array2table(surfarea_table,'VariableNames',var_names,'RowNames',subjects),'surfarea.csv','WriteRowNames',1,'WriteVariableNames',1);
+writetable(array2table(meansurfdisp_table,'VariableNames',var_names,'RowNames',subjects),'meansurfdisp.csv','WriteRowNames',1,'WriteVariableNames',1);
+writetable(array2table(mean_fa_table,'VariableNames',var_names,'RowNames',subjects),'mean_fa.csv','WriteRowNames',1,'WriteVariableNames',1);
 
 
 end
