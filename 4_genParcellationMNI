@@ -83,7 +83,15 @@ fi
 
    echo fslmaths $in_seeds -div $vol $norm_seeds
    fslmaths $in_seeds -div $vol $norm_seeds 
- 
+
+  
+  #also normalize by max value
+   norm_seeds=$parc_dir/probtrack/seeds_to_${name}_resampled.normMax.nii.gz
+
+   minmax=`fslstats $in_seeds -R`
+   maxval=${minmax#[0-9]*\ }
+   echo fslmaths $in_seeds -div $maxval $norm_seeds
+   fslmaths $in_seeds -div $maxval $norm_seeds
  
 
  done #targets
@@ -150,6 +158,8 @@ echo reg_resample -flo $seed_mask -res $seed_mask_atlas -aff $linxfm -ref $atlas
 reg_resample -flo $seed_mask -res $seed_mask_atlas -aff $linxfm -ref $atlas_t1 -NN 0
 
 
+#================  no normalization here:
+
 dti_parc=$out_dir/diffusion_parcellation.masked.nii.gz
 dti_parc_subj=$track_dir/diffusion_parcellation.masked.nii.gz
 
@@ -210,6 +220,75 @@ done #done targetlist
  echo reg_resample -flo $dti_parc -res $dti_parc_subj -aff $linxfm_inv -ref $subj_t1 -NN 0
  reg_resample -flo $dti_parc -res $dti_parc_subj -aff $linxfm_inv -ref $subj_t1 -NN 0
   
+
+#======================= with normMax normalization here:
+
+dti_parc=$out_dir/diffusion_parcellation.masked.normMax.nii.gz
+dti_parc_subj=$track_dir/diffusion_parcellation.masked.normMax.nii.gz
+
+for track in `ls $track_dir/seeds_to_*_resampled.normMax.nii.gz`
+do
+
+target=${track##*seeds_to_}
+target=${target%%.normMax.nii.gz}
+
+track_atlas=$out_dir/seeds_to_${target}.normMax.nii.gz
+if [ "$legacy_dwi_proc" = 1 ]
+then
+reg_resample -flo $track -res $track_atlas -aff $xfm_dwi_t1 -ref $subj_t1 -LIN
+reg_resample -flo $track_atlas -res $track_atlas -aff $linxfm  -ref $atlas_t1 -LIN
+else
+reg_resample -flo $track -res $track_atlas -aff $linxfm -ref $atlas_t1 -LIN
+fi
+
+
+#mask with seed label (remove voxels outside seed region)
+fslmaths $track_atlas -mas $seed_mask_atlas $track_atlas
+
+
+
+done #track
+
+
+#now create 4D and maxprob image:
+ seedlist=""
+for lbl_line in `cat $target_labels_txt`
+do
+
+  lbl=${lbl_line%%,*}
+
+ 
+  map=$out_dir/seeds_to_${lbl}_resampled.normMax.nii.gz
+
+  map_left=$out_dir/seeds_to_${lbl}_resampled.normMax.mask_left.nii.gz
+  map_right=$out_dir/seeds_to_${lbl}_resampled.normMax.mask_right.nii.gz
+
+  #mask with left/right  ROI:
+  fslmaths $map -roi $roi_left $map_left
+  fslmaths $map -roi $roi_right $map_right
+
+  seedlist="$seedlist $map_left $map_right"
+
+done #done targetlist
+
+ #create map for diffusion-based parcellation 
+ echo fslmerge -t $out_dir/seeds.normMax.4d.nii.gz $seedlist
+ fslmerge -t $out_dir/seeds.normMax.4d.nii.gz $seedlist
+
+ threshold=0.0001
+ echo  prob4DtoMaxProb $out_dir/seeds.normMax.4d.nii.gz $threshold $dti_parc
+ prob4DtoMaxProb $out_dir/seeds.normMax.4d.nii.gz $threshold $dti_parc
+
+ #bring back to subject space
+ echo reg_resample -flo $dti_parc -res $dti_parc_subj -aff $linxfm_inv -ref $subj_t1 -NN 0
+ reg_resample -flo $dti_parc -res $dti_parc_subj -aff $linxfm_inv -ref $subj_t1 -NN 0
+  
+
+
+
+
+
+
 
 done  #subject
 

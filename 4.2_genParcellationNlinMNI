@@ -67,19 +67,22 @@ subj_t1=$subj_dir/t1/t1.brain.inorm.nii.gz
 atlas_t1=${atlas}/t1/t1.brain.inorm.nii.gz
 
 
-dti_parc=$out_dir/diffusion_parcellation.masked.nii.gz
-
-#if [ ! -e $dti_parc ]
-#then
-
-
-
 seed_mask=$subj/$seed_file
 seed_mask_atlas=$out_dir/seedmask.nii.gz
 
 #warp seed from subj to atlas space
 echo reg_resample -flo $seed_mask -res $seed_mask_atlas -cpp $nlinxfm  -ref $atlas_t1 -NN 0
 reg_resample -flo $seed_mask -res $seed_mask_atlas -cpp $nlinxfm  -ref $atlas_t1 -NN 0
+
+
+
+#================== no normalization
+
+dti_parc=$out_dir/diffusion_parcellation.masked.nii.gz
+
+#if [ ! -e $dti_parc ]
+#then
+
 
 for track in `ls $track_dir/seeds_to_*_resampled.nii.gz`
 do
@@ -132,6 +135,79 @@ done #done targetlist
  $execpath/prob4DtoMaxProb $out_dir/seeds.4d.nii.gz $threshold $dti_parc
 
 # fi
+
+
+
+#================== with normalization
+
+
+dti_parc=$out_dir/diffusion_parcellation.masked.normMax.nii.gz
+
+#if [ ! -e $dti_parc ]
+#then
+
+
+for track in `ls $track_dir/seeds_to_*_resampled.normMax.nii.gz`
+do
+
+target=${track##*seeds_to_}
+target=${target%%.normMax.nii.gz}
+
+track_atlas=$out_dir/seeds_to_${target}.normMax.nii.gz
+#warp from subj to atlas space
+echo reg_resample -flo $track -res $track_atlas -cpp $nlinxfm -ref $atlas_t1 -LIN
+reg_resample -flo $track -res $track_atlas -cpp $nlinxfm -ref $atlas_t1 -LIN
+
+#mask with seed label (remove voxels outside seed region)
+echo fslmaths $track_atlas -mas $seed_mask_atlas $track_atlas
+fslmaths $track_atlas -mas $seed_mask_atlas $track_atlas
+
+
+done #track
+
+
+ name_txt=$parc_dir/target_names.txt
+#now create 4D and maxprob image:
+ seedlist=""
+for lbl_line in `cat $target_labels_txt`
+do          
+  lbl=${lbl_line%%,*}
+
+
+
+ 
+  map=$out_dir/seeds_to_${lbl}_resampled.normMax.nii.gz
+
+  map_left=$out_dir/seeds_to_${lbl}_resampled.normMax.mask_left.nii.gz
+  map_right=$out_dir/seeds_to_${lbl}_resampled.normMax.mask_right.nii.gz
+
+  #mask with left/right  ROI:
+  fslmaths $map -roi $roi_left $map_left
+  fslmaths $map -roi $roi_right $map_right
+
+  seedlist="$seedlist $map_left $map_right"
+
+done #done targetlist
+
+ #create map for diffusion-based parcellation 
+ echo fslmerge -t $out_dir/seeds.normMax.4d.nii.gz $seedlist
+ fslmerge -t $out_dir/seeds.normMax.4d.nii.gz $seedlist
+
+ threshold=0.0001
+ echo  $execpath/prob4DtoMaxProb $out_dir/seeds.normMax.4d.nii.gz $threshold $dti_parc
+ $execpath/prob4DtoMaxProb $out_dir/seeds.normMax.4d.nii.gz $threshold $dti_parc
+
+# fi
+
+
+
+
+
+
+
+
+
+
 
 done  #subject
 
