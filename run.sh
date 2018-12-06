@@ -798,7 +798,7 @@ then
 
     source $parcellate_cfg
     pushd $work_folder      
-    runMatlabCmd  analyzeSurfData "'$list'" "'$in_prepdwi_dir'" "'$parcellation_name'"
+    runMatlabCmd  analyzeSurfData "'$list'" "'$in_prepdwi_dir'" "'$parcellation_name'" "'$target_labels_txt'"
     popd
 
     rm -f $list

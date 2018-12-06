@@ -134,8 +134,11 @@ mean_fa=zeros(length(hemi),length(targets));
     end
     
     
-    
-    
+mkdir('subj_mat');
+%save these variables in .mat files to be retrieved by group-level process
+subj_mat=sprintf('subj_mat/%s',subj));
+save(subj_mat,'nverts','surfarea','meansurfdisp','mean_fa');
+
     
 %     
 % 
