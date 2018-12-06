@@ -19,7 +19,7 @@ function processSubjSurfData ( subj, prepdwi_dir,parcellation_name,target_labels
 % VTK with in/out scalar overlay
 %   currently: work/surfdisp_singlestruct_striatum_cortical/sub-CT01/templateSurface_seed_inout.vtk
 
-% need to verify what space these are in -- MNI?
+% need to verify what space these are in -- MNI? yes..
 
 %maybe:
 % VTK with meanConnectedFA overlay
@@ -98,8 +98,11 @@ hemi_label{2}=v_mni(:,1)>0;
     
     %TODO: need to make sure this path is globbed, as may be T1w or T1wGC
     %   verify naming..
-    faimg=sprintf('%s/prepdwi/%s/dwi/%s_dwi_space-T1w_FA.nii.gz',prepdwi_dir,subj,subj);
-    fa=load_nifti(faimg);
+    %get name of image
+    faimg=dir(sprintf('%s/prepdwi/%s/dwi/%s_dwi_space-T1w*proc-FSL_FA.nii.gz',prepdwi_dir,subj,subj));
+%    faimg=sprintf('%s/prepdwi/%s/dwi/%s_dwi_space-T1w_FA.nii.gz',prepdwi_dir,subj,subj);
+    
+    fa=load_nifti([faimg.folder, filesep, faimg.name]);
     
     fa_mat=fa.vol(mask.vol>0);
     

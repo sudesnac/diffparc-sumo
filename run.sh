@@ -666,13 +666,31 @@ then
 
 
       source $parcellate_cfg
+      if [ ! -e $work/surfdisp_singlestruct_${parcellation_name}/${subj_sess_prefix}/templateSurface_seed_inout.vtk ]
+	then
+	      echo propLabels_reg_bspline_f3d t1 $labelgroup_prob $atlas  $subj_sess_prefix -L
+	      propLabels_reg_bspline_f3d t1 $labelgroup_prob $atlas  $subj_sess_prefix -L
+	      echo propLabels_backwards_intersubj_aladin t1  ${labelgroup_prob}_bspline_f3d_$atlas  $atlas $subj_sess_prefix -L
+	      propLabels_backwards_intersubj_aladin t1  ${labelgroup_prob}_bspline_f3d_$atlas  $atlas $subj_sess_prefix -L
+	      echo computeSurfaceDisplacementsSingleStructure $subj_sess_prefix $parcellate_cfg  -N
+	      computeSurfaceDisplacementsSingleStructure $subj_sess_prefix $parcellate_cfg  -N
+	fi
 
-      echo propLabels_reg_bspline_f3d t1 $labelgroup_prob $atlas  $subj_sess_prefix -L
-      propLabels_reg_bspline_f3d t1 $labelgroup_prob $atlas  $subj_sess_prefix -L
-      echo propLabels_backwards_intersubj_aladin t1  ${labelgroup_prob}_bspline_f3d_$atlas  $atlas $subj_sess_prefix -L
-      propLabels_backwards_intersubj_aladin t1  ${labelgroup_prob}_bspline_f3d_$atlas  $atlas $subj_sess_prefix -L
-      echo computeSurfaceDisplacementsSingleStructure $subj_sess_prefix $parcellate_cfg  -N
-      computeSurfaceDisplacementsSingleStructure $subj_sess_prefix $parcellate_cfg  -N
+     #make BIDS links for output
+     out_subj_dir=$out_folder/$subj_sess_dir/anat
+
+     #surf parc in T1w space (vtk file, open in slicer or paraview)
+     vec_mni=$work_folder/surfdisp_singlestruct_$parcellation_name/${subj_sess_prefix}.templateSurface_seed_disp.vtk
+     inout_mni=$work_folder/surfdisp_singlestruct_$parcellation_name/${subj_sess_prefix}.templateSurface_seed_inout.vtk
+     
+     out_vec_mni=$out_subj_dir/${subj_sess_prefix}_space-${atlas}_${bids_tags}_surfmorphvec.vtk
+     out_inout_mni=$out_subj_dir/${subj_sess_prefix}_space-${atlas}_${bids_tags}_surfmorphinout.vtk
+
+     #surf vtk of avg template with displacements
+     mkdir -p $out_subj_dir
+     ln -srfv $vec_mni $out_vec_mni
+     ln -srfv $inout_mni $out_inout_mni
+
 
      done #ses
  done
@@ -712,14 +730,30 @@ then
         echo subj_sess_prefix $subj_sess_prefix
 
 
-
-      echo $execpath/9.2_runSurfBasedTractography $work_folder $bedpost_root $parcellate_cfg $nsamples $subj_sess_prefix
-      $execpath/9.2_runSurfBasedTractography $work_folder $bedpost_root $parcellate_cfg $nsamples $subj_sess_prefix
-
     source $parcellate_cfg
+	if [ ! -e $work_folder/$subj_sess_prefix/bedpost.${parcellation_name}/vertexTract/fdt_matrix2.dot ]
+	then
+	      echo $execpath/9.2_runSurfBasedTractography $work_folder $bedpost_root $parcellate_cfg $nsamples $subj_sess_prefix
+	      $execpath/9.2_runSurfBasedTractography $work_folder $bedpost_root $parcellate_cfg $nsamples $subj_sess_prefix
+	fi
+
        pushd $work_folder      
        runMatlabCmd  processSubjSurfData "'$subj_sess_prefix'" "'$in_prepdwi_dir'" "'$parcellation_name'" "'$target_labels_txt'"
        popd
+
+
+     #make BIDS links for output
+     out_subj_dir=$out_folder/$subj_sess_dir/anat
+
+     #surf parc in T1w space (vtk file, open in slicer or paraview)
+     parc_surf=$work_folder/subj_vtk/${subj_sess_prefix}.parc.vtk
+     
+     out_parc_surf=$out_subj_dir/${subj_sess_prefix}_space-T1w_${bids_tags}_surfdiffparc.vtk
+
+     #surf vtk of avg template with displacements
+     mkdir -p $out_subj_dir
+     ln -srfv $parc_surf $out_parc_surf
+
 
 
     done #ses
