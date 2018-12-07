@@ -32,6 +32,7 @@ surfdisp_dir=sprintf('%s/surfdisp_singlestruct_%s',data_dir,parcellation_name);
 
 template_byu=sprintf('%s/template/seed_nii.byu',surfdisp_dir);
 
+dtispace_byu=sprintf('%s/%s/propSurface_seed_nii_subj_dti.byu',surfdisp_dir,subj);
 
 % read in $target_labels_txt from parcellate_cfg for list of targets
 targets=importdata(target_labels_txt);
@@ -73,7 +74,7 @@ hemi_label{2}=v_mni(:,1)>0;
  % write each subject's parcellation to vtk file
 
   mkdir('subj_vtk');
-    writeByuWithScalarToVTK(template_byu,maxlabel,sprintf('subj_vtk/%s.parc.vtk',subj));
+    writeByuWithScalarToVTK(dtispace_byu,maxlabel,sprintf('subj_vtk/%s.parc.vtk',subj));
 
     
 %% get surf disp:

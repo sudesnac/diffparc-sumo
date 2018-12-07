@@ -89,6 +89,8 @@ in_bids=$1
 out_folder=$2 
 analysis_level=$3
 
+mkdir -p $out_folder 
+out_folder=`realpath $out_folder`
 
 shift 3
 
@@ -683,8 +685,8 @@ then
      out_subj_dir=$out_folder/$subj_sess_dir/anat
 
      #surf parc in T1w space (vtk file, open in slicer or paraview)
-     vec_mni=$work_folder/surfdisp_singlestruct_$parcellation_name/${subj_sess_prefix}.templateSurface_seed_disp.vtk
-     inout_mni=$work_folder/surfdisp_singlestruct_$parcellation_name/${subj_sess_prefix}.templateSurface_seed_inout.vtk
+     vec_mni=$work_folder/surfdisp_singlestruct_$parcellation_name/${subj_sess_prefix}/templateSurface_seed_disp.vtk
+     inout_mni=$work_folder/surfdisp_singlestruct_$parcellation_name/${subj_sess_prefix}/templateSurface_seed_inout.vtk
      
      out_vec_mni=$out_subj_dir/${subj_sess_prefix}_space-${atlas}_${bids_tags}_surfmorphvec.vtk
      out_inout_mni=$out_subj_dir/${subj_sess_prefix}_space-${atlas}_${bids_tags}_surfmorphinout.vtk
