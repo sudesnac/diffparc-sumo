@@ -37,7 +37,7 @@ do
 
 norm_flag=norm-off
 
-out_csv=`realpath $out_folder`/dti-${metric}_${bids_tags}_diffparc_$subj_suffix.csv
+out_csv=`realpath $out_folder`/dti-${metric}_${bids_tags}_diffparc_${subj_suffix}_${norm_flag}.csv
 
 
 #first, need to import FA images 

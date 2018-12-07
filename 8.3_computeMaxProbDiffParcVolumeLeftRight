@@ -49,7 +49,7 @@ computeSegVolume $target_labels_hemi_txt $track_dir/diffusion_parcellation.maske
 popd
 
 
-#====== no normalization
+#====== with normalization
 
 norm_flag=norm-max
 

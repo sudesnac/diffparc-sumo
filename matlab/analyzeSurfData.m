@@ -1,6 +1,6 @@
 %script for analyzing surface-based data -- clean-up in progress
 
-function analyzeSurfData ( subj_list ,prepdwi_dir,parcellation_name, target_labels_txt)
+function analyzeSurfData ( subj_list ,prepdwi_dir,parcellation_name, target_labels_txt,out_folder,bids_tags)
 
 % here, we just want to write out the csv tables
 
@@ -64,9 +64,9 @@ r=1;
      end
  end
 
-writetable(array2table(surfarea_table,'VariableNames',var_names,'RowNames',subjects),'surfarea.csv','WriteRowNames',1,'WriteVariableNames',1);
-writetable(array2table(meansurfdisp_table,'VariableNames',var_names,'RowNames',subjects),'meansurfdisp.csv','WriteRowNames',1,'WriteVariableNames',1);
-writetable(array2table(mean_fa_table,'VariableNames',var_names,'RowNames',subjects),'mean_fa.csv','WriteRowNames',1,'WriteVariableNames',1);
+writetable(array2table(surfarea_table,'VariableNames',var_names,'RowNames',subjects),sprintf('%s/surfarea_%s.csv',out_folder,bids_tags),'WriteRowNames',1,'WriteVariableNames',1);
+writetable(array2table(meansurfdisp_table,'VariableNames',var_names,'RowNames',subjects),sprintf('%s/surfdisp_%s.csv',out_folder,bids_tags),'WriteRowNames',1,'WriteVariableNames',1);
+writetable(array2table(mean_fa_table,'VariableNames',var_names,'RowNames',subjects),sprintf('%s/dti-FA_%s_surfspace.csv',out_folder,bids_tags),'WriteRowNames',1,'WriteVariableNames',1);
 
 
 end

@@ -607,15 +607,14 @@ then
         echo $subj_sess_prefix >> $list
     done #ses
     done
-
-   # echo $execpath/8.1_computeThreshDiffParcVolumeLeftRight $work_folder $list
-   # $execpath/8.1_computeThreshDiffParcVolumeLeftRight $work_folder $list
-    echo $execpath/8.3_computeMaxProbDiffParcVolumeLeftRight $work_folder $out_folder $list
-    $execpath/8.3_computeMaxProbDiffParcVolumeLeftRight $work_folder $out_folder $list
-    echo $execpath/8.4_computeMaxProbDiffParcFALeftRight $work_folder $out_folder $list
-    $execpath/8.4_computeMaxProbDiffParcFALeftRight $work_folder $out_folder $list
-    echo $execpath/8.5_computePathsParcFALeftRight $work_folder $out_folder $list
-    $execpath/8.5_computePathsParcFALeftRight $work_folder $out_folder $list
+    csv_folder=$out_folder/csv
+    mkdir -p $csv_folder
+    echo $execpath/8.3_computeMaxProbDiffParcVolumeLeftRight $work_folder $csv_folder $list
+    $execpath/8.3_computeMaxProbDiffParcVolumeLeftRight $work_folder $csv_folder $list
+    echo $execpath/8.4_computeMaxProbDiffParcFALeftRight $work_folder $csv_folder $list
+    $execpath/8.4_computeMaxProbDiffParcFALeftRight $work_folder $csv_folder $list
+    echo $execpath/8.5_computePathsParcFALeftRight $work_folder $csv_folder $list
+    $execpath/8.5_computePathsParcFALeftRight $work_folder $csv_folder $list
 
     
 
@@ -638,6 +637,8 @@ then
 	 else
 	    sleep 300 #shouldn't take longer than 5 min
      fi
+
+    popd
 
      for subj in $subjlist 
      do
@@ -666,14 +667,16 @@ then
 
 
       source $parcellate_cfg
-      if [ ! -e $work/surfdisp_singlestruct_${parcellation_name}/${subj_sess_prefix}/templateSurface_seed_inout.vtk ]
+      if [ ! -e $work_folder/surfdisp_singlestruct_${parcellation_name}/${subj_sess_prefix}/templateSurface_seed_inout.vtk ]
 	then
+        pushd $work_folder
 	      echo propLabels_reg_bspline_f3d t1 $labelgroup_prob $atlas  $subj_sess_prefix -L
 	      propLabels_reg_bspline_f3d t1 $labelgroup_prob $atlas  $subj_sess_prefix -L
 	      echo propLabels_backwards_intersubj_aladin t1  ${labelgroup_prob}_bspline_f3d_$atlas  $atlas $subj_sess_prefix -L
 	      propLabels_backwards_intersubj_aladin t1  ${labelgroup_prob}_bspline_f3d_$atlas  $atlas $subj_sess_prefix -L
 	      echo computeSurfaceDisplacementsSingleStructure $subj_sess_prefix $parcellate_cfg  -N
 	      computeSurfaceDisplacementsSingleStructure $subj_sess_prefix $parcellate_cfg  -N
+          popd
 	fi
 
      #make BIDS links for output
@@ -695,7 +698,6 @@ then
      done #ses
  done
      
-     popd
 
 
  elif [ "$analysis_level" = "participant4" ]
@@ -798,7 +800,7 @@ then
 
     source $parcellate_cfg
     pushd $work_folder      
-    runMatlabCmd  analyzeSurfData "'$list'" "'$in_prepdwi_dir'" "'$parcellation_name'" "'$target_labels_txt'"
+    runMatlabCmd  analyzeSurfData "'$list'" "'$in_prepdwi_dir'" "'$parcellation_name'" "'$target_labels_txt'" "'$out_folder/csv'" "'${bids_tags}'"
     popd
 
     rm -f $list
