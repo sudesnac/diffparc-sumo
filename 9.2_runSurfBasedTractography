@@ -48,7 +48,22 @@ brainmask_bin=$out_tract_dir/nodif_brain_mask_bin.nii.gz
 bedpost_samples=$bedpost_dir/merged
 
 
-seedref=$brainmask #dti space as seed ref
+csf_t1space=$subj_dir/t1/t1.brain.inorm.fast_prob_0.nii.gz
+  csf_dwispace=$parc_dir/csf_prob.nii.gz
+  csf_mask=$parc_dir/csf_prob_th.nii.gz
+
+  #get probabilistic csf segmentation
+  if [ ! -e $csf_mask ]
+  then
+  echo reg_resample -flo $csf_t1space -ref $ref_file -res $csf_dwispace
+  reg_resample -flo $csf_t1space -ref $ref_file -res $csf_dwispace
+
+  echo fslmaths $csf_dwispace -thr 0.5 -bin $csf_mask
+  fslmaths $csf_dwispace -thr 0.5 -bin $csf_mask
+  fi
+
+ #use this seed ref, since it corresponds to targets_dtires.txt images (images in resampled dtispace)
+ seedref=$parc_dir/seed_ref.nii.gz
 
 
 #read index_list to pull out indices of interest
@@ -109,20 +124,19 @@ fi
 
 #run probtrack
 
-#### BUG IN MESHSPACE AND TRACKING!!
-
 probtrackx2 \
 -x $prop_byu_subj_dti_gii \
 -m $brainmask \
 -s $bedpost_samples \
 --dir=$out_tract_dir \
 --targetmasks=$targetmasks \
---stop=$targetmasks \
 --forcedir \
+--stop=$csf_mask \
 --opd --os2t  --s2tastext \
 --seedref=$seedref \
 --omatrix2 \
 --target2=$brainmask_bin \
+--randfib=2 \
 -V 1 \
 -l  --onewaycondition -c 0.2 -S 2000 --steplength=0.5 \
 -P $nseeds --fibthresh=0.01 --distthresh=0.0 --sampvox=0.0  $probtrack_opts
