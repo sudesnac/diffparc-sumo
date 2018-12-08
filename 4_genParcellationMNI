@@ -212,7 +212,7 @@ done #done targetlist
  echo fslmerge -t $out_dir/seeds.4d.nii.gz $seedlist
  fslmerge -t $out_dir/seeds.4d.nii.gz $seedlist
 
- threshold=0.0001
+ threshold=`bashcalc "0.01 * $nsamples"`
  echo  prob4DtoMaxProb $out_dir/seeds.4d.nii.gz $threshold $dti_parc
  prob4DtoMaxProb $out_dir/seeds.4d.nii.gz $threshold $dti_parc
 
@@ -275,7 +275,7 @@ done #done targetlist
  echo fslmerge -t $out_dir/seeds.normMax.4d.nii.gz $seedlist
  fslmerge -t $out_dir/seeds.normMax.4d.nii.gz $seedlist
 
- threshold=0.0001
+ threshold=0.01
  echo  prob4DtoMaxProb $out_dir/seeds.normMax.4d.nii.gz $threshold $dti_parc
  prob4DtoMaxProb $out_dir/seeds.normMax.4d.nii.gz $threshold $dti_parc
 
