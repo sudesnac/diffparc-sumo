@@ -754,7 +754,7 @@ then
      
      out_parc_surf=$out_subj_dir/${subj_sess_prefix}_space-T1w_${bids_tags}_surfdiffparc.vtk
 
-     #surf vtk of avg template with displacements
+     #surf vtk of parcellation
      mkdir -p $out_subj_dir
      ln -srfv $parc_surf $out_parc_surf
 

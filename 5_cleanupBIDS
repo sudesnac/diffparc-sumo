@@ -42,6 +42,9 @@ dti_parc_subj_mni_normmax=$track_dir/$atlas/diffusion_parcellation.masked.normMa
 paths_parc_subj_mni=$work_dir/$subj/bedpost.${parcellation_name}/probtrack_parcels_to_targets/$atlas/seg_paths.$atlas.nii.gz
 paths_parc_subj=$work_dir/$subj/bedpost.${parcellation_name}/probtrack_parcels_to_targets/seg_paths.nii.gz
 
+t1w_seed_seg=$work_dir/$subj/$seed_file
+t1w_target_seg=$work_dir/$subj/$target_seg
+
 out_subj_dir=$out_bids/$subj/anat
 mkdir -p $out_subj_dir
 
@@ -51,10 +54,15 @@ out_parc_mni=$out_subj_dir/${subj}_reg-affine_space-${atlas}_${bids_tags}_norm-o
 out_parc_normmax=$out_subj_dir/${subj}_space-T1w_${bids_tags}_norm-max_diffparc.nii.gz
 out_parc_mni_normmax=$out_subj_dir/${subj}_reg-affine_space-${atlas}_${bids_tags}_norm-max_diffparc.nii.gz
 
+out_t1w_seed_seg=$out_subj_dir/${subj}_space-T1w_${bids_tags}_inseed.nii.gz
+out_t1w_target_seg=$out_subj_dir/${subj}_space-T1w_${bids_tags}_intargets.nii.gz
+
 out_paths=$out_subj_dir/${subj}_space-T1w_${bids_tags}_pathsparc.nii.gz
 out_paths_mni=$out_subj_dir/${subj}_reg-affine_space-${atlas}_${bids_tags}_pathsparc.nii.gz
 
 ln -srfv $t1w_subj $out_t1w
+ln -srfv $t1w_seed_seg $out_t1w_seed_seg
+ln -srfv $t1w_target_seg $out_t1w_target_seg
 ln -srfv $dti_parc_subj $out_parc
 ln -srfv $dti_parc_subj_mni $out_parc_mni
 
