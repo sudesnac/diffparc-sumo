@@ -118,8 +118,8 @@ do
 
     if [ ! -e $track_dir/paths_${tract_name}.nii.gz ]
     then
-    echo probtrackx2 --seedref=$seed_resampled -x $seed_resampled --waypoints=$target_nii -m $mask_file -s $samples_base --dir=$track_dir -o paths_$tract_name $probtrack_opts --stop=$csf_mask
-    probtrackx2 --seedref=$seed_resampled -x $seed_resampled --waypoints=$target_nii -m $mask_file -s $samples_base --dir=$track_dir -o paths_$tract_name $probtrack_opts --stop=$csf_mask
+    echo probtrackx2 --seedref=$seed_resampled -x $seed_resampled --waypoints=$target_nii -m $mask_file -s $samples_base --dir=$track_dir -o paths_$tract_name $probtrack_opts #--stop=$csf_mask
+    probtrackx2 --seedref=$seed_resampled -x $seed_resampled --waypoints=$target_nii -m $mask_file -s $samples_base --dir=$track_dir -o paths_$tract_name $probtrack_opts #--stop=$csf_mask
     fi
    
    
