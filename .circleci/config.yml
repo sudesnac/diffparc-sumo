@@ -1,6 +1,6 @@
 version: 2
 jobs:
-  build_test:
+  build:
     docker:
       - image: docker:17.05.0-ce-git
     steps:
@@ -13,6 +13,17 @@ jobs:
               export DOCKER_NAME=myapp
               docker build -t $DOCKER_NAME .
               docker save $DOCKER_NAME -o /tmp/docker_image.tar
+      - persist_to_workspace:
+          root: /tmp
+          paths:
+            - docker_image.tar
+  test:
+    docker:
+      - image: docker:17.05.0-ce-git
+    steps:
+      - setup_remote_docker            
+      - attach_workspace:
+          at: /tmp/workspace
       - run:
           name: Install dependencies 
           command: |
