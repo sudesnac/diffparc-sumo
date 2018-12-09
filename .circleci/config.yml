@@ -28,6 +28,10 @@ jobs:
           name: Install dependencies 
           command: |
             apk add --update make wget tree
+      - run: 
+          name: Load docker image
+          command: |
+            docker load -i /tmp/workspace/docker_image.tar
       - run:
           name: Running Tests
           command: |
@@ -143,6 +147,8 @@ workflows:
             tags:
               only: /.*/
       - test:
+          requires:
+            - build
           context: org-global
           filters:
             tags:
