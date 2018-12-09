@@ -137,7 +137,12 @@ workflows:
   version: 2
   commit:
     jobs: 
-      - build_test:
+      - build:
+          context: org-global
+          filters:
+            tags:
+              only: /.*/
+      - test:
           context: org-global
           filters:
             tags:
