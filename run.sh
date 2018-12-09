@@ -63,13 +63,10 @@ then
  echo "          [--nsamples N ] (default: 1000)"
  echo ""
  echo "	Analysis levels:"
- echo "		participant1: T1 pre-processing and atlas registration"
- echo "		group1: generate QC for masking, linear and non-linear registration"
- echo "		participant2: volume-based tractography parcellation"
- echo "		group2: generate csv files for parcellation volume stats"
- echo "		participant3: surface-based displacement morphometry (LDDMM)"
- echo "		participant4: surface-based tractography parcellation"
- echo "		group3: generate surface-based analysis stats and results"
+ echo "		participant: T1 pre-processing, atlas label prop, vol-based tractography"
+ echo "		group: generate csv files for parcellation volume & dti stats"
+ echo "		participant2: surface-based displacement morphometry (LDDMM) & surf-based tractography"
+ echo "		group2: generate surface-based analysis stats csv"
  echo ""
  echo "         Available parcellate types:"
  for parc in `ls $execpath/cfg/parcellate.*.cfg`
@@ -388,10 +385,10 @@ done
 echo $participants
 	
 
-if [ "$analysis_level" = "participant1" ]
+if [ "$analysis_level" = "participant" ]
 then
- echo " running participant1 level analysis"
- echo " import data and preproc T1, DWI"
+ echo " running participant level analysis"
+ echo " import data from prepdwi"
   
  for subj in $subjlist 
  do
@@ -430,96 +427,27 @@ then
 			mkdir -p $work_folder/$filepath
 			cp -v $infile $work_folder/$filepath
 		done
-	else
+
+ 
+     echo $execpath/2.0_processT1 $work_folder $subj_sess_prefix
+    $execpath/2.0_processT1 $work_folder $subj_sess_prefix
+   
+    else
+
+        echo "Cannot find $in_prepdwi_dir/work/$subj_sess_prefix/t1/t1.brain.inorm.nii.gz, skipping ...."
+        continue
 
 
-
-N_t1w=`eval ls $in_bids/$subj_sess_dir/anat/${subj_sess_prefix}${searchstring_t1w} | wc -l`
-in_t1w=`eval ls $in_bids/$subj_sess_dir/anat/${subj_sess_prefix}${searchstring_t1w} | head -n 1`
-
- echo Found $N_t1w matching T1w, using first found: $in_t1w
-
-  pushd $work_folder
- echo importT1 $in_t1w $subj_sess_prefix
-  importT1 $in_t1w $subj_sess_prefix
-  popd
-
+ 
   fi #after import from bids or prepdwi
-
-  if [ -n "$reg_init_subj" ]
-  then
-	echo $execpath/2.1_processT1_regFail $work_folder $reg_init_subj $subj_sess_prefix
-	$execpath/2.1_processT1_regFail $work_folder $reg_init_subj $subj_sess_prefix
-  else
- 	echo $execpath/2.0_processT1 $work_folder $subj_sess_prefix
-	 $execpath/2.0_processT1 $work_folder $subj_sess_prefix
-  fi
-
   
  done #ses
  done
 
- elif [ "$analysis_level" = "group1" ]
- then
 
-    echo "generate preproc QC reports"
+echo " running probabilistic tracking and seed parcellation (formerly participant2 level)"
 
-    #need to make a subjlist for this command 
-    mkdir -p $work_folder/etc
-    qclist=$work_folder/etc/subjects
-    rm -f $qclist
-    touch $qclist
-
-
-
-    for subj in $subjlist
-    do
-        subj=`fixsubj $subj`
-
-    #loop over sub- and sub-/ses-
-    for subjfolder in `ls -d $in_bids/$subj/dwi $in_bids/$subj/ses-*/dwi 2> /dev/null`
-    do
-
-        subj_sess_dir=${subjfolder%/dwi}
-        subj_sess_dir=${subj_sess_dir##$in_bids/}
-        if echo $subj_sess_dir | grep -q '/'
-        then
-            sess=${subj_sess_dir##*/}
-            subj_sess_prefix=${subj}_${sess}
-        else
-            subj_sess_prefix=${subj}
-        fi
-        echo subjfolder $subjfolder
-        echo subj_sess_dir $subj_sess_dir
-        echo sess $sess
-        echo subj_sess_prefix $subj_sess_prefix
-
-
-        echo $subj_sess_prefix >> $qclist
-
-    done #ses
-    done
-
-    $execpath/3_genQC $work_folder $qclist
-
-
-
-elif [ "$analysis_level" = "participant2" ]
-then
- echo " running participant2 level analysis"
- echo "  probabilistic tracking and seed parcellation"
-
-  bedpost_root=`realpath $in_prepdwi_dir/bedpost`
- # if [ ! -e $bedpost_root ]
-  #then
- #  #try to locate prepdwi derivatives from bids input folder, use most recent
- #  bedpost_root=`ls -dt $in_bids/derivatives/prepdwi*/bedpost | head -n 1`
-
- # if [ ! -e  "$bedpost_root" ]
- # then
- #    echo "Cannot find bedpost folder in $in_bids/derivatives/prepdwi*, required for participant3 analysis"
- #    exit 1
- # fi
+ bedpost_root=`realpath $in_prepdwi_dir/bedpost`
 
  for subj in $subjlist 
  do
@@ -623,10 +551,11 @@ then
     #delete after done
     rm -f $list
 
- elif [ "$analysis_level" = "participant3" ]
+ elif [ "$analysis_level" = "participant2" ]
  then
 
-    echo "analysis level participant3, computing surfdisp target processing"
+    echo "analysis level participant2, surface-based processing"
+    echo "   computing surface-based morphometry (formerly analysis level participant3)"
      pushd $work_folder
 
      #first prep template (if not done yet, run it once, uses mkdir lock for synchronization, and wait time of 5 minutes)
@@ -701,11 +630,7 @@ then
  done
      
 
-
- elif [ "$analysis_level" = "participant4" ]
- then
-
-    echo "analysis level participant4, computing surface-based tractography"
+    echo "computing surface-based tractography, formerly analysis level participant4"
 
     bedpost_root=`realpath $in_prepdwi_dir/bedpost`
      for subj in $subjlist 
@@ -765,10 +690,10 @@ then
      
 
 
- elif [ "$analysis_level" = "group3" ]
+ elif [ "$analysis_level" = "group2" ]
  then
 
-    echo "analysis level group3, computing surf-based analysis"
+     echo "analysis level group2, computing surf-based analysis (formerly group3)" 
 
     mkdir -p $work_folder/etc
     list=$work_folder/etc/subjects.$analysis_level.$RANDOM
