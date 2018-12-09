@@ -131,7 +131,7 @@ probtrackx2 \
 --dir=$out_tract_dir \
 --targetmasks=$targetmasks \
 --forcedir \
---stop=$csf_mask \
+#--stop=$csf_mask \
 --opd --os2t  --s2tastext \
 --seedref=$seedref \
 --omatrix2 \
