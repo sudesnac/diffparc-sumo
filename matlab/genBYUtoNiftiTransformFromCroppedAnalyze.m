@@ -16,7 +16,7 @@ nii=load_nifti(in_nifti);
 crop_params=importdata(in_crop_param_txt);
 
 vox2ras=nii.sform;
-flipx=eye(4,4); flipx(1,1)=-1;
+%flipx=eye(4,4); flipx(1,1)=-1;
 xfm_crop=[1 0 0 crop_params(1); 0 1 0 crop_params(3); 0 0 1 crop_params(5); 0 0 0 1];
 
 %this goes from nifti vox to byu
@@ -31,7 +31,8 @@ xfm_crop=[1 0 0 crop_params(1); 0 1 0 crop_params(3); 0 0 1 crop_params(5); 0 0 
 %want xfm that takes images from cropped to phys, same as points from phys
 %to cropped -> that's why we need the inverse..
 
-composed=flipx*vox2ras*xfm_crop;
+%composed=flipx*vox2ras*xfm_crop;
+composed=vox2ras*xfm_crop;
 
 
 dlmwrite(out_xfm,inv(composed));

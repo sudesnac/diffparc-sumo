@@ -35,7 +35,7 @@ preprocT1 $subj
 for atlas in `ls -d $in_atlas_dir/*`
 do
  atlas_name=${atlas##*/}
- cp -Rv $atlas .
+ #cp -Rv $atlas .
  
  #register atlas and subject t1
  reg_intersubj_aladin  t1 $atlas_name $subj -i $init_subj

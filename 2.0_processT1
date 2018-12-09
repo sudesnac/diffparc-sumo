@@ -38,9 +38,13 @@ echo preprocT1 $subj
 preprocT1 $subj
 fi
 
-fast -v -p -o $subj/t1/t1.brain.inorm.fast $subj/t1/t1.brain.inorm.nii.gz
+if [ ! -e $subj/t1/t1.brain.inorm.fast_seg.nii.gz ]
+then
+	echo fast -v -p -o $subj/t1/t1.brain.inorm.fast $subj/t1/t1.brain.inorm.nii.gz
+	fast -v -p -o $subj/t1/t1.brain.inorm.fast $subj/t1/t1.brain.inorm.nii.gz
+fi
 
-echo in_atlas_dir: $in_atlas_dir
+#echo in_atlas_dir: $in_atlas_dir
 #copy atlases to output folder
 for atlas in `ls -d $in_atlas_dir/*`
 do
@@ -49,19 +53,30 @@ do
  #if atlas not copied, then:
  if [ ! -e $atlas_name ]
  then
+	 echo "atlas $atlas_name does not exist!!"
  #mkdir to ensure only one process copies the files..
- if $(mkdir $atlas_name)
- then
-   cp -Rv $atlas/* $atlas_name
- else
-   sleep 30
- fi
+# if $(mkdir $atlas_name)
+# then
+#   cp -Rv $atlas/* $atlas_name
+# else
+#   sleep 30
+# fi
  fi
 
  
  #register atlas and subject t1
+ #TODO: add check here
+ if [ ! -e $subj/reg/affine_aladin_t1/${atlas_name}_${subj}/${atlas_name}_to_${subj}.xfm ]
+ then
+ echo reg_intersubj_aladin  t1 $atlas_name $subj 
  reg_intersubj_aladin  t1 $atlas_name $subj 
+ fi
+
+ if [ ! -e $subj/reg/bspline_f3d_t1/${atlas_name}_${subj}/ctrlpt_${atlas_name}_to_${subj}.nii.gz ]
+ then
+ echo reg_bspline_f3d t1 $atlas_name $subj
  reg_bspline_f3d t1 $atlas_name $subj
+ fi
 
  if [ "$legacy_dwi_proc" = 1 ]
  then 
