@@ -1,0 +1,33 @@
+#!/bin/bash
+
+in=$1
+out=$2
+
+if [ "$#" -lt 2 ]
+then
+ echo "Normalize each 3d vol in 4d image by the max intensity"
+ echo "Usage: <in_4d> <out_4d>"
+ exit 1
+fi
+
+
+in_name=${in%%.nii*}
+
+#split into 3d vols
+echo fslsplit $in $in_name.3d_ -t
+fslsplit $in $in_name.3d_ -t
+
+for vol in $in_name.3d_*
+do
+   minmax=`fslstats $vol -R`
+   maxval=${minmax#[0-9]*\ }
+   echo fslmaths $vol -div $maxval $vol
+   fslmaths $vol -div $maxval $vol
+ 
+done
+
+#merge back to 4d
+echo fslmerge -t $out $in_name.3d_*
+fslmerge -t $out $in_name.3d_*
+
+
