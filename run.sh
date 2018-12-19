@@ -50,7 +50,7 @@ nsamples=1000
 
 if [ "$#" -lt 3 ]
 then
- echo "Usage: diffparcellate bids_dir output_dir {participant1,group1,participant2,group2,participant3,participant4,group3} <optional arguments>"
+ echo "Usage: diffparcellate bids_dir output_dir {participant,group,participant2,group2,participant3,participant4,group3} <optional arguments>"
  echo ""
  echo " Required arguments:"
  echo "          [--in_prepdwi_dir PREPDWI_DIR]" 
@@ -500,13 +500,13 @@ echo " running probabilistic tracking and seed parcellation (formerly participan
  done #ses
  done
 
- elif [ "$analysis_level" = "group2" ]
+ elif [ "$analysis_level" = "group" ]
  then
 
-    echo "analysis level group2, computing parcellation volumes"
+    echo "analysis level group, computing parcellation volumes"
 
     #need to make a subjlist for this command 
-    list=$work_folder/subjects_group2.$RANDOM
+    list=$work_folder/subjects_group.$RANDOM
     rm -f $list
     touch $list
     for subj in $subjlist
