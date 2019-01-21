@@ -41,16 +41,31 @@ out_csv=`realpath $out_folder`/dti-${metric}_${bids_tags}_diffparc_${subj_suffix
 
 
 #first, need to import FA images 
-for subj in `cat $subjlist`
+for subj_sess_prefix in `cat $subjlist`
 do
 
-in_dti=$in_prepdwi_dir/prepdwi/$subj/dwi/${subj}_dwi_space-T1*_proc-${proctype}_$metric.nii.gz
-mkdir -p $work_dir/$subj/dwi
-out_dti=$work_dir/$subj/dwi/$metric.nii.gz
+#check if has session-level
+subj=${subj_sess_prefix%%_ses*}
+if [ "$subj" = "$subj_sess_prefix" ]
+then
+    #no session level
+    subj_sess_dir=$subj
+else
+    sess=${subj_sess_prefix##*_}
+    subj_sess_dir=$subj/$sess
+fi
+
+echo subj_sess_dir: $subj_sess_dir
+echo subj_sess_prefix: $subj_sess_prefix
+
+
+in_dti=$in_prepdwi_dir/prepdwi/$subj_sess_dir/dwi/${subj_sess_prefix}_dwi_space-T1*_proc-${proctype}_$metric.nii.gz
+mkdir -p $work_dir/$subj_sess_prefix/dwi
+out_dti=$work_dir/$subj_sess_prefix/dwi/$metric.nii.gz
 if [ ! -e $out_dti ]
 then
-echo reg_resample -flo $in_dti -res $out_dti -ref $work_dir/$subj/t1/t1.nii.gz
-reg_resample -flo $in_dti -res $out_dti -ref $work_dir/$subj/t1/t1.nii.gz
+echo reg_resample -flo $in_dti -res $out_dti -ref $work_dir/$subj_sess_prefix/t1/t1.nii.gz
+reg_resample -flo $in_dti -res $out_dti -ref $work_dir/$subj_sess_prefix/t1/t1.nii.gz
 fi
 done
 
@@ -79,16 +94,31 @@ out_csv=`realpath $out_folder`/dti-${metric}_${bids_tags}_diffparc_${subj_suffix
 
 
 #first, need to import FA images 
-for subj in `cat $subjlist`
+for subj_sess_prefix in `cat $subjlist`
 do
 
-in_dti=$in_prepdwi_dir/prepdwi/$subj/dwi/${subj}_dwi_space-T1*_proc-${proctype}_$metric.nii.gz
-mkdir -p $work_dir/$subj/dwi
-out_dti=$work_dir/$subj/dwi/$metric.nii.gz
+#check if has session-level
+subj=${subj_sess_prefix%%_ses*}
+if [ "$subj" = "$subj_sess_prefix" ]
+then
+    #no session level
+    subj_sess_dir=$subj
+else
+    sess=${subj_sess_prefix##*_}
+    subj_sess_dir=$subj/$sess
+fi
+
+echo subj_sess_dir: $subj_sess_dir
+echo subj_sess_prefix: $subj_sess_prefix
+
+
+in_dti=$in_prepdwi_dir/prepdwi/$subj_sess_dir/dwi/${subj_sess_prefix}_dwi_space-T1*_proc-${proctype}_$metric.nii.gz
+mkdir -p $work_dir/$subj_sess_prefix/dwi
+out_dti=$work_dir/$subj_sess_prefix/dwi/$metric.nii.gz
 if [ ! -e $out_dti ]
 then
-echo reg_resample -flo $in_dti -res $out_dti -ref $work_dir/$subj/t1/t1.nii.gz
-reg_resample -flo $in_dti -res $out_dti -ref $work_dir/$subj/t1/t1.nii.gz
+echo reg_resample -flo $in_dti -res $out_dti -ref $work_dir/$subj_sess_prefix/t1/t1.nii.gz
+reg_resample -flo $in_dti -res $out_dti -ref $work_dir/$subj_sess_prefix/t1/t1.nii.gz
 fi
 done
 
