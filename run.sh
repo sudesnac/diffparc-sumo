@@ -539,6 +539,8 @@ echo " running probabilistic tracking and seed parcellation (formerly participan
     done
     csv_folder=$out_folder/csv
     mkdir -p $csv_folder
+    echo $execpath/8.2_computeStructuralStriatumVolume $work_folder $csv_folder $list
+    $execpath/8.2_computeStructuralStriatumVolume $work_folder $csv_folder $list
     echo $execpath/8.3_computeMaxProbDiffParcVolumeLeftRight $work_folder $csv_folder $list
     $execpath/8.3_computeMaxProbDiffParcVolumeLeftRight $work_folder $csv_folder $list
     echo $execpath/8.4_computeMaxProbDiffParcFALeftRight $work_folder $csv_folder $list
