@@ -16,4 +16,12 @@ ENV PIPELINE_TOOL_DIR /diffparcellate
 #set below for reg_*_aladin/bspline tools
 ENV PIPELINE_CFG_DIR /diffparcellate/cfg
 
+
+#install MCR
+RUN bash /diffparcellate/deps/05.install_MCR.sh /opt v92 R2017a
+ENV MCRROOT /opt/mcr/v92
+ENV MCRBINS /diffparcellate/mcr/v92
+
+
+
 ENTRYPOINT ["/diffparcellate/run.sh"]
