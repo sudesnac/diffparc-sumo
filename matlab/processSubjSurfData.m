@@ -88,26 +88,23 @@ hemi_label{2}=v_mni(:,1)>0;
 
 %% evaluate FA along fibres in each parcellation
 
+% leaving this out since too memory-intensive when nsamples is very high..
 
-    fdt_matrix=sprintf('%s/%s/bedpost.%s/vertexTract/fdt_matrix2.dot',data_dir,subj,parcellation_name);
-    
-    %following command is memory intensive:
-    mat=spconvert(load(fdt_matrix));
-   
-    maskimg=sprintf('%s/bedpost/%s/nodif_brain_mask.nii.gz',prepdwi_dir,subj);
-    mask=load_nifti(maskimg);
-    
-    %TODO: need to make sure this path is globbed, as may be T1w or T1wGC
-    %   verify naming..
-    %get name of image
-    faimg=dir(sprintf('%s/prepdwi/%s/dwi/%s_dwi_space-T1w*proc-FSL_FA.nii.gz',prepdwi_dir,subj,subj));
-%    faimg=sprintf('%s/prepdwi/%s/dwi/%s_dwi_space-T1w_FA.nii.gz',prepdwi_dir,subj,subj);
-    
-    fa=load_nifti([faimg.folder, filesep, faimg.name]);
-    
-    fa_mat=fa.vol(mask.vol>0);
-    
-    tract_fa=mat*fa_mat./(mat*ones(size(fa_mat)));
+%    fdt_matrix=sprintf('%s/%s/bedpost.%s/vertexTract/fdt_matrix2.dot',data_dir,subj,parcellation_name);
+%    
+%    %following command is memory intensive:
+%    mat=spconvert(load(fdt_matrix));
+%   
+%    maskimg=sprintf('%s/bedpost/%s/nodif_brain_mask.nii.gz',prepdwi_dir,subj);
+%    mask=load_nifti(maskimg);
+%    
+%    faimg=dir(sprintf('%s/prepdwi/%s/dwi/%s_dwi_space-T1w*proc-FSL_FA.nii.gz',prepdwi_dir,subj,subj));
+%    
+%    fa=load_nifti([faimg.folder, filesep, faimg.name]);
+%    
+%    fa_mat=fa.vol(mask.vol>0);
+%    
+%    tract_fa=mat*fa_mat./(mat*ones(size(fa_mat)));
     
     
 
@@ -117,7 +114,7 @@ hemi_label{2}=v_mni(:,1)>0;
 nverts=zeros(length(hemi),length(targets));
 surfarea=zeros(length(hemi),length(targets));
 meansurfdisp=zeros(length(hemi),length(targets));
-mean_fa=zeros(length(hemi),length(targets));
+%mean_fa=zeros(length(hemi),length(targets));
 
     
     for h=1:length(hemi)
@@ -129,7 +126,7 @@ mean_fa=zeros(length(hemi),length(targets));
             surfarea(h,i)=computeSurfArea(v_mni,e_mni,selection);
             
             meansurfdisp(h,i)=mean(surfdisp_inout(selection));
-            mean_fa(h,i)=mean(tract_fa(selection));
+%            mean_fa(h,i)=mean(tract_fa(selection));
 
         end
     end
@@ -138,93 +135,8 @@ mean_fa=zeros(length(hemi),length(targets));
 mkdir('subj_mat');
 %save these variables in .mat files to be retrieved by group-level process
 subj_mat=sprintf('subj_mat/%s',subj);
-save(subj_mat,'nverts','surfarea','meansurfdisp','mean_fa');
+%save(subj_mat,'nverts','surfarea','meansurfdisp','mean_fa');
+save(subj_mat,'nverts','surfarea','meansurfdisp');
 
-    
-%     
-% 
-% %% Write data to tables:
-% %target_order=[3,2,6,1,5,4,7];
-% % generate variable for output order of csv files
-% r=1;
-% var_names={};
-% for t=1:length(targets)
-%     for h=1:2
-%         var_names{r}=sprintf('%s_%s',hemi{h},targets{t});
-%         r=r+1;
-%     end
-% end
-% 
-% 
-% 
-% %% write surf disp data to table
-% 
-% out_data=zeros(length(targets)*2);
-% 
-% 
-%     structi=1
-%     for t=1:length(targets)
-%         for h=1:2
-%             
-%             out_data(structi)=meansurfdisp(h,target_order(t));
-%             structi=structi+1;
-%         end
-%     end
-%     
-% 
-% surfdisp_table=array2table(out_data,'VariableNames',var_names,'RowNames',subjects);
-% 
-% writetable(surfdisp_table,'meansurfdisp_avgsurfparc.csv','WriteRowNames',1,'WriteVariableNames',1);
-% 
-% 
-% 
-% %% write surf area data to table (using previous table format)
-% out_data=zeros(length(subjects),length(targets)*2);
-% target_order=[3,2,6,1,5,4,7];
-% 
-% for s=1:length(subjects)
-%     structi=1
-%     for t=1:length(targets)
-%         for h=1:2
-%             
-%             out_data(s,structi)=surfarea(s,h,target_order(t));
-%             structi=structi+1;
-%         end
-%     end
-%     
-% end
-% 
-% surfarea_table=array2table(out_data,'VariableNames',var_names,'RowNames',subjects);
-% 
-% writetable(surfarea_table,'surfarea.csv','WriteRowNames',1,'WriteVariableNames',1);
-% 
-% 
-% 
-% 
-% %%  write FA data to table
-% out_data=zeros(length(subjects),length(targets)*2);
-% target_order=[3,2,6,1,5,4,7];
-% 
-% for s=1:length(subjects)
-%     structi=1
-%     for t=1:length(targets)
-%         for h=1:2
-%             
-%             out_data(s,structi)=mean_fa(s,h,target_order(t));
-%             structi=structi+1;
-%         end
-%     end
-%     
-% end
-% 
-% 
-% fa_table=array2table(out_data,'VariableNames',var_names,'RowNames',subjects);
-% 
-% writetable(fa_table,'meanFA_avgsurfparc.txt','WriteRowNames',1,'WriteVariableNames',1);
-% 
-% %% save all the tables to a mat file:
-% 
-% save('tables.mat','fa_table','surfdisp_table','surfarea_table');
-% 
 
 end
