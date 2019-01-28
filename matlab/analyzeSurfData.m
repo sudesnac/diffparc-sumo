@@ -33,7 +33,7 @@ for s=1:length(subjects)
     
     subj=subjects{s};
 
-    subj_mat=sprintf('subj_mat/%s',subj);
+    subj_mat=sprintf('subj_mat/%s.mat',subj);
     if exist(subj_mat,'file') == 0
 	    disp(sprintf('data for %s does not exist, skipping!', subj_mat))
 	    continue;
