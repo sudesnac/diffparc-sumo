@@ -562,11 +562,12 @@ echo " running probabilistic tracking and seed parcellation (formerly participan
 
      #first prep template (if not done yet, run it once, uses mkdir lock for synchronization, and wait time of 5 minutes)
      template_lock=etc/run_template.lock
-     if $(mkdir -p $template_lock)
+     if mkdir -p $template_lock
      then
          echo computeSurfaceDisplacementsSingleStructure template_placeholder  $parcellate_cfg -N -t
          computeSurfaceDisplacementsSingleStructure template_placeholder  $parcellate_cfg -N -t
-        rm $template_lock
+         rmdir $template_lock
+
 	 else
 	    sleep 300 #shouldn't take longer than 5 min
      fi
