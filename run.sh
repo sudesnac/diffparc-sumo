@@ -63,10 +63,12 @@ then
  echo "          [--nsamples N ] (default: 1000)"
  echo ""
  echo "	Analysis levels:"
- echo "		participant: T1 pre-processing, atlas label prop, vol-based tractography"
+ echo "		participant: T1 pre-proc, label prop, vol-based tractography"
  echo "		group: generate csv files for parcellation volume & dti stats"
- echo "		participant2: surface-based displacement morphometry (LDDMM) & surf-based tractography"
+ echo "		participant2: T1 pre-proc, label prop, surface-based displacement morphometry (LDDMM) & surf-based tractography"
  echo "		group2: generate surface-based analysis stats csv"
+ echo ""
+ echo "  note:  participant2/group2 can now be run without participant/group analysis.."
  echo ""
  echo "         Available parcellate types:"
  for parc in `ls $execpath/cfg/parcellate.*.cfg`
@@ -385,10 +387,15 @@ done
 echo $participants
 	
 
-if [ "$analysis_level" = "participant" ]
+#do common pre-processing for participant and participant2 analysis:
+
+
+
+
+
+if [ "$analysis_level" = "participant" -o "$analysis_level" = "participant2" ]
 then
- echo " running participant level analysis"
- echo " import data from prepdwi"
+ echo " running pre-processing common to participant and participant2 level analysis"
   
  for subj in $subjlist 
  do
@@ -414,6 +421,7 @@ then
         echo sess $sess
         echo subj_sess_prefix $subj_sess_prefix
 
+	echo "    importing data from prepdwi"
 	if [ -e $in_prepdwi_dir/work/$subj_sess_prefix/t1/t1.brain.inorm.nii.gz ]
 	then
 		echo "using pre-processed t1 from prepdwi"
@@ -428,15 +436,14 @@ then
 			cp -v $infile $work_folder/$filepath
 		done
 
- 
-     echo $execpath/2.0_processT1 $work_folder $subj_sess_prefix
-    $execpath/2.0_processT1 $work_folder $subj_sess_prefix
+	    #steps inside of 2.0_processT1 will only run if incomplete
+	     echo $execpath/2.0_processT1 $work_folder $subj_sess_prefix
+	    $execpath/2.0_processT1 $work_folder $subj_sess_prefix
    
     else
 
         echo "Cannot find $in_prepdwi_dir/work/$subj_sess_prefix/t1/t1.brain.inorm.nii.gz, skipping ...."
         continue
-
 
  
   fi #after import from bids or prepdwi
@@ -444,8 +451,13 @@ then
  done #ses
  done
 
+fi #end of participant/participant2 pre-processing
 
-echo " running probabilistic tracking and seed parcellation (formerly participant2 level)"
+
+ if [ "$analysis_level" = "participant" ]
+then
+ echo " running participant level analysis"
+echo "     probabilistic tracking and seed parcellation (formerly participant2 level)"
 
  bedpost_root=`realpath $in_prepdwi_dir/bedpost`
 
@@ -499,6 +511,9 @@ echo " running probabilistic tracking and seed parcellation (formerly participan
 
  done #ses
  done
+
+
+
 
  elif [ "$analysis_level" = "group" ]
  then
