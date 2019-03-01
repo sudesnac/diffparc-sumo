@@ -7,7 +7,7 @@ function clusterProbTrackKmeans (in_subj4d_file,out_subj_kmeans)
 %out_maxprob='maxprob.nii.gz';
 %out_subj_kmeans='kmeans_subjCentroids.nii.gz';
 
-prob_nii=load_nifti(subj4d_file);
+prob_nii=load_nifti(in_subj4d_file);
 prob=prob_nii.vol;
 
 %merge left and right (left is odd indices, right is even)
@@ -16,8 +16,8 @@ for i=1:2:(size(prob,4)-1)
 end
 prob=prob(:,:,:,[1:2:end-1]);
 
-%threshold=0;
-%mask=mean(prob,4)>threshold;
+threshold=0;
+mask=mean(prob,4)>threshold;
 N=sum(mask(:));
 M=size(prob,4); %num features
 featmat=zeros(N,M);
