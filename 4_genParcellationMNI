@@ -219,7 +219,18 @@ done #done targetlist
  #bring back to subject space
  echo reg_resample -flo $dti_parc -res $dti_parc_subj -aff $linxfm_inv -ref $subj_t1 -NN 0
  reg_resample -flo $dti_parc -res $dti_parc_subj -aff $linxfm_inv -ref $subj_t1 -NN 0
-  
+
+ #====================  new maxprob-initialized K-means based clustering:
+
+ dti_parc=$out_dir/diffusion_parcellation.kmeans.nii.gz
+ dti_parc_subj=$track_dir/diffusion_parcellation.kmeans.nii.gz
+
+ echo runMatlabCmd clusterProbTrackKmeans "'$out_dir/seeds.4d.nii.gz'" "'$dti_parc'"
+ runMatlabCmd clusterProbTrackKmeans "'$out_dir/seeds.4d.nii.gz'" "'$dti_parc'"
+
+ echo reg_resample -flo $dti_parc -res $dti_parc_subj -aff $linxfm_inv -ref $subj_t1 -NN 0
+ reg_resample -flo $dti_parc -res $dti_parc_subj -aff $linxfm_inv -ref $subj_t1 -NN 0
+
 
 #======================= with normMax normalization here:
 

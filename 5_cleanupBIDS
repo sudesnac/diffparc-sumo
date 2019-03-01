@@ -54,6 +54,10 @@ dti_parc_subj_mni=$track_dir/$atlas/diffusion_parcellation.masked.nii.gz
 dti_parc_subj_normmax=$track_dir/diffusion_parcellation.masked.normMax.nii.gz
 dti_parc_subj_mni_normmax=$track_dir/$atlas/diffusion_parcellation.masked.normMax.nii.gz
 
+dti_kmeans_subj=$track_dir/diffusion_parcellation.kmeans.nii.gz
+dti_kmeans_subj_mni=$track_dir/$atlas/diffusion_parcellation.kmeans.nii.gz
+
+
 paths_parc_subj_mni=$work_dir/${subj_sess_prefix}/bedpost.${parcellation_name}/probtrack_parcels_to_targets/$atlas/seg_paths.$atlas.nii.gz
 paths_parc_subj=$work_dir/${subj_sess_prefix}/bedpost.${parcellation_name}/probtrack_parcels_to_targets/seg_paths.nii.gz
 
@@ -66,6 +70,10 @@ mkdir -p $out_subj_dir
 out_t1w=$out_subj_dir/${subj_sess_prefix}_T1w.nii.gz
 out_parc=$out_subj_dir/${subj_sess_prefix}_space-T1w_${bids_tags}_norm-off_diffparc.nii.gz
 out_parc_mni=$out_subj_dir/${subj_sess_prefix}_reg-affine_space-${atlas}_${bids_tags}_norm-off_diffparc.nii.gz
+
+out_kmeans=$out_subj_dir/${subj_sess_prefix}_space-T1w_${bids_tags}_method-kmeans_diffparc.nii.gz
+out_kmeans_mni=$out_subj_dir/${subj_sess_prefix}_reg-affine_space-${atlas}_${bids_tags}_method-kmeans_diffparc.nii.gz
+
 out_parc_normmax=$out_subj_dir/${subj_sess_prefix}_space-T1w_${bids_tags}_norm-max_diffparc.nii.gz
 out_parc_mni_normmax=$out_subj_dir/${subj_sess_prefix}_reg-affine_space-${atlas}_${bids_tags}_norm-max_diffparc.nii.gz
 
@@ -80,6 +88,8 @@ ln -srfv $t1w_seed_seg $out_t1w_seed_seg
 ln -srfv $t1w_target_seg $out_t1w_target_seg
 ln -srfv $dti_parc_subj $out_parc
 ln -srfv $dti_parc_subj_mni $out_parc_mni
+ln -srfv $dti_kmeans_subj $out_kmeans
+ln -srfv $dti_kmeans_subj_mni $out_kmeans_mni
 
 ln -srfv $dti_parc_subj_normmax $out_parc_normmax
 ln -srfv $dti_parc_subj_mni_normmax $out_parc_mni_normmax
