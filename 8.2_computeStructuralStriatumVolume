@@ -23,8 +23,8 @@ subjlist=`realpath $subjlist`
 
 pushd $work_dir
 
-out_csv=`realpath $out_folder`/volumes_striatum_unparcellated.csv
+out_csv=`realpath $out_folder`/volumes_${bids_tags}_anatomical_space-T1w.csv
 
-computeSegVolume StriatumStructural.csv labels/t1/striatum_bspline_f3d_$atlas/striatum-structural-1mm.hemi.nii.gz $1 > $out_csv 
+computeSegVolume $target_anat_txt  $seed_file  $subjlist > $out_csv 
 
 popd
