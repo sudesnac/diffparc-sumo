@@ -1,0 +1,99 @@
+#!/bin/bash
+
+#run this script with singularity exec (or neuroglia)  in a diffparc container 
+diffparc_dir=$1
+parcellate_type=$2
+
+
+if [ "$#" -lt 2 ]
+then
+	 echo "Usage: $0 <diffparc_dir> <parcellate_type - e.g. CIT168_striatum_cortical>"
+	 echo ""
+	 echo " NOTE: you must run this script with singularity exec (or neuroglia)  in a diffparc container "
+	 echo ""
+	 echo "e.g.:  singularity exec \$SINGULARITY_OPTS /project/6007967/akhanf/singularity/bids-apps/khanlab_diffparc-sumo_latest.img $0 path_to_my_diffparcdir CIT168_striatum_cortical"
+	 exit 1
+ fi
+
+export cfg_dir=/diffparcellate/cfg
+cfg=$cfg_dir/parcellate.$parcellate_type.cfg
+
+source $cfg
+
+out_csv=$diffparc_dir/csv/indepConnVolume_$bids_tags.csv
+
+if [ -e $out_csv ]
+then 
+	 echo "csv file $out_csv already exists, delete it first.."
+	 exit 1
+fi
+
+echo "target_labels_txt: $target_labels_txt"
+
+#make header line:
+echo -n "subj" > $out_csv
+
+  for targetline in `cat $target_labels_txt`
+  do
+    target=${targetline%%,*}
+    
+    for hemi in left right
+    do
+
+	   if [ "$hemi" = "left" ]
+	   then
+		   Hemi=Left
+	   else
+		   Hemi=Right
+	   fi
+
+    	echo -n ",${Hemi}_${target}" >> $out_csv
+   done
+done
+
+#end of line
+   echo "" >> $out_csv
+
+#loop through all subjects in work folder
+
+pushd $diffparc_dir/work 
+for subj in sub-*
+do
+  connmap=$subj/bedpost.$parcellate_type/probtrack/$atlas/seeds_to_${target}_resampled.normMax.mask_${hemi}.nii.gz
+  if [ ! -e $connmap ]
+  then 
+     echo "skipping $subj"
+     continue
+  else
+     echo "$subj"
+  fi
+	
+  echo -n "$subj" >> $out_csv
+  for targetline in `cat $target_labels_txt`
+  do
+    target=${targetline%%,*}
+    
+    for hemi in left right
+    do
+ 	connmap=$subj/bedpost.$parcellate_type/probtrack/$atlas/seeds_to_${target}_resampled.normMax.mask_${hemi}.nii.gz
+
+	#compute the average non-zero value in the image
+	if [ -e $connmap ]
+	then	 
+	val=`fslstats $connmap -M`
+	val=${val%\ *}
+	echo -n ",$val" >> $out_csv
+	else
+	echo -n ",-1" >> $out_csv
+	fi
+    done #hemi
+
+  done #target
+
+  #end of line
+  echo "" >> $out_csv 
+
+done #subj
+
+popd
+
