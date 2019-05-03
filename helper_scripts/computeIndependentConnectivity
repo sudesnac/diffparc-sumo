@@ -59,7 +59,7 @@ done
 pushd $diffparc_dir/work 
 for subj in sub-*
 do
-  connmap=$subj/bedpost.$parcellate_type/probtrack/$atlas/seeds_to_${target}_resampled.normMax.mask_${hemi}.nii.gz
+  connmap=$subj/bedpost.$parcellation_name/probtrack/$atlas/seeds_to_${target}_resampled.normMax.mask_${hemi}.nii.gz
   if [ ! -e $connmap ]
   then 
      echo "skipping $subj"
@@ -75,7 +75,7 @@ do
     
     for hemi in left right
     do
- 	connmap=$subj/bedpost.$parcellate_type/probtrack/$atlas/seeds_to_${target}_resampled.normMax.mask_${hemi}.nii.gz
+ 	connmap=$subj/bedpost.$parcellation_name/probtrack/$atlas/seeds_to_${target}_resampled.normMax.mask_${hemi}.nii.gz
 
 	#compute the average non-zero value in the image
 	if [ -e $connmap ]
