@@ -50,7 +50,7 @@ nsamples=1000
 
 if [ "$#" -lt 3 ]
 then
- echo "Usage: diffparcellate bids_dir output_dir {participant,group,participant2,group2,participant3,participant4,group3} <optional arguments>"
+ echo "Usage: diffparcellate bids_dir output_dir {participant,group,participant2,group2} <optional arguments>"
  echo ""
  echo " Required arguments:"
  echo "          [--in_prepdwi_dir PREPDWI_DIR]" 
