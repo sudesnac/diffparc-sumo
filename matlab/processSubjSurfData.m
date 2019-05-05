@@ -73,8 +73,8 @@ hemi_label{2}=v_mni(:,1)>0;
     
  % write each subject's parcellation to vtk file
 
-  mkdir('subj_vtk');
-    writeByuWithScalarToVTK(dtispace_byu,maxlabel,sprintf('subj_vtk/%s.parc.vtk',subj));
+  mkdir(sprintf('%s/subj_vtk',surfdisp_dir));
+    writeByuWithScalarToVTK(dtispace_byu,maxlabel,sprintf('%s/subj_vtk/%s.parc.vtk',surfdisp_dir,subj));
 
     
 %% get surf disp:
@@ -132,9 +132,9 @@ meansurfdisp=zeros(length(hemi),length(targets));
     end
     
     
-mkdir('subj_mat');
+mkdir('%s/subj_mat',surfdisp_dir));
 %save these variables in .mat files to be retrieved by group-level process
-subj_mat=sprintf('subj_mat/%s',subj);
+subj_mat=sprintf('%s/subj_mat/%s',surfdisp_dir,subj);
 %save(subj_mat,'nverts','surfarea','meansurfdisp','mean_fa');
 save(subj_mat,'nverts','surfarea','meansurfdisp');
 

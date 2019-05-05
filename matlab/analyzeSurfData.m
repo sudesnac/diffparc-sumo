@@ -10,6 +10,8 @@ function analyzeSurfData ( subj_list ,prepdwi_dir,parcellation_name, target_labe
 data_dir='.';
 
 
+surfdisp_dir=sprintf('%s/surfdisp_singlestruct_%s',data_dir,parcellation_name);
+
 % read in $target_labels_txt from parcellate_cfg for list of targets
 targets=importdata(target_labels_txt);
 targets=targets.textdata;
@@ -33,7 +35,7 @@ for s=1:length(subjects)
     
     subj=subjects{s};
 
-    subj_mat=sprintf('subj_mat/%s.mat',subj);
+    subj_mat=sprintf('%s/subj_mat/%s.mat',surfdisp_dir,subj);
     if exist(subj_mat,'file') == 0
 	    disp(sprintf('data for %s does not exist, skipping!', subj_mat))
 	    continue;
