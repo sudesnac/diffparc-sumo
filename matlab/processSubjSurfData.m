@@ -132,7 +132,7 @@ meansurfdisp=zeros(length(hemi),length(targets));
     end
     
     
-mkdir('%s/subj_mat',surfdisp_dir));
+mkdir(sprintf('%s/subj_mat',surfdisp_dir));
 %save these variables in .mat files to be retrieved by group-level process
 subj_mat=sprintf('%s/subj_mat/%s',surfdisp_dir,subj);
 %save(subj_mat,'nverts','surfarea','meansurfdisp','mean_fa');
