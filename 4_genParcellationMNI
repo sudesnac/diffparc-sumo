@@ -53,6 +53,7 @@ then
 fi
 
 
+
 #normalize by targe volume:
 
  vol_csv=$parc_dir/target_volumes.csv
@@ -60,6 +61,9 @@ fi
 
  name_txt=$parc_dir/target_names.txt
  rm -f $name_txt
+
+
+ seedlist=""
 
  echo "Normalizing seed to target maps by volume of target"
 
@@ -92,14 +96,15 @@ fi
    maxval=${minmax#[0-9]*\ }
    echo fslmaths $in_seeds -div $maxval $norm_seeds
    fslmaths $in_seeds -div $maxval $norm_seeds
- 
+
+   seedlist="$seedlist $in_seeds"
 
  done #targets
 
 
 
-
-
+#create 4D volume in patient seed space
+fslmerge -t $parc_dir/connMap.4d.nii.gz $seedlist
 
 
 
