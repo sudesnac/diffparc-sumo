@@ -47,6 +47,7 @@ legacy_dwi_path=dwi/uncorrected_denoise_unring_eddy
 
 seed_res=1
 nsamples=1000
+skip_postproc=0
 
 if [ "$#" -lt 3 ]
 then
@@ -61,6 +62,9 @@ then
  echo "          [--parcellate_type PARCELLATE_TYPE (default: striatum_cortical; can alternatively specify config file) "
  echo "          [--seed_res RES_MM ] (default: 1)"
  echo "          [--nsamples N ] (default: 1000)"
+ echo ""
+ echo " Optional arguments for participant level:"
+ echo "          [--skip_postproc] (skips post-processing after tractography - use when large # of targets, e.g. HCP-MMP)"
  echo ""
  echo "	Analysis levels:"
  echo "		participant: T1 pre-proc, label prop, vol-based tractography"
@@ -125,6 +129,9 @@ while :; do
          die 'error: "--participant_label" requires a non-empty option argument.'
           ;;
 
+           --skip_postproc  )       
+       		   skip_postproc=1;;
+#-------------------
 
            --enable_legacy_dwi )       # takes an option argument; ensure it has been specified.
             legacy_dwi_proc=1;;
@@ -359,7 +366,7 @@ then
 index_list=`realpath $index_list`
 
 #exports for called scripts
-export legacy_dwi_proc in_atlas_dir parcellate_cfg index_list cfg_dir
+export legacy_dwi_proc in_atlas_dir parcellate_cfg index_list cfg_dir skip_postproc seed_res
 
 
 #use symlinks instead of copying 
@@ -492,7 +499,16 @@ echo "     probabilistic tracking and seed parcellation (formerly participant2 l
 
    echo $execpath/4_genParcellationMNI $work_folder $bedpost_root $seed_res $nsamples $subj_sess_prefix
    $execpath/4_genParcellationMNI $work_folder $bedpost_root $seed_res $nsamples $subj_sess_prefix
-  
+
+
+  if [ "$skip_postproc" = 1 ]
+  then
+	echo "run.sh: skipping post-processing after 4_genParcellationMNI completed"
+ 
+        else
+
+
+
    nsamples_tracts=`bashcalc "scale=0; $nsamples/100"`
    if [ "$nsamples_tracts" -lt 10 ]
    then
@@ -505,6 +521,9 @@ echo "     probabilistic tracking and seed parcellation (formerly participant2 l
    echo $execpath/4.2_genParcellationNlinMNI $work_folder $subj_sess_prefix
    $execpath/4.2_genParcellationNlinMNI $work_folder $subj_sess_prefix
 
+   fi
+
+   #this is run regardless of skip_postproc
    echo $execpath/5_cleanupBIDS $work_folder $out_folder $subj_sess_prefix
    $execpath/5_cleanupBIDS $work_folder $out_folder $subj_sess_prefix
   fi

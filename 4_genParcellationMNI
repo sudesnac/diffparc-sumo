@@ -63,6 +63,7 @@ fi
  rm -f $name_txt
 
 
+seed_mask=$parc_dir/seed_dtires.nii.gz
  seedlist=""
 
  echo "Normalizing seed to target maps by volume of target"
@@ -85,29 +86,50 @@ fi
   in_seeds=$parc_dir/probtrack/seeds_to_${name}_resampled.nii.gz
   norm_seeds=$parc_dir/probtrack/seeds_to_${name}_resampled.normVol.nii.gz
 
+  if [ ! -e $norm_seeds ]
+   then
    echo fslmaths $in_seeds -div $vol $norm_seeds
    fslmaths $in_seeds -div $vol $norm_seeds 
-
+   fi
   
   #also normalize by max value
    norm_seeds=$parc_dir/probtrack/seeds_to_${name}_resampled.normMax.nii.gz
 
    minmax=`fslstats $in_seeds -R`
    maxval=${minmax#[0-9]*\ }
+   if [ ! -e $norm_seeds ]
+   then
    echo fslmaths $in_seeds -div $maxval $norm_seeds
    fslmaths $in_seeds -div $maxval $norm_seeds
+   fi
 
    seedlist="$seedlist $in_seeds"
 
  done #targets
 
 
+connmap_4d=$parc_dir/connMap.4d.nii.gz
 
 #create 4D volume in patient seed space
-fslmerge -t $parc_dir/connMap.4d.nii.gz $seedlist
+if [ ! -e $connmap_4d ]
+then
+echo fslmerge -t $connmap_4d $seedlist
+fslmerge -t $connmap_4d $seedlist
+fi
 
+connmap_mat=$parc_dir/connMap.mat
 
+if [ ! -e $connmap_mat ]
+then
+echo runMatlabCmd genConnMapFeatures "'$connmap_4d'" "'$seed_mask'" "'$connmap_mat'"
+runMatlabCmd genConnMapFeatures "'$connmap_4d'" "'$seed_mask'" "'$connmap_mat'"
+fi
 
+if [ "$skip_postproc" = 1 ]
+then
+	echo "4_genParcellationMNI: skipping post-processing"
+	exit 0
+fi
 
 #post-processing to move to MNI space and extract left/right sides
 interp_opt="-LIN"

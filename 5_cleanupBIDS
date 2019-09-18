@@ -83,19 +83,65 @@ out_t1w_target_seg=$out_subj_dir/${subj_sess_prefix}_space-T1w_${bids_tags}_inta
 out_paths=$out_subj_dir/${subj_sess_prefix}_space-T1w_${bids_tags}_pathsparc.nii.gz
 out_paths_mni=$out_subj_dir/${subj_sess_prefix}_reg-affine_space-${atlas}_${bids_tags}_pathsparc.nii.gz
 
+#add:  $work_dir/${subj_sess_prefix}/bedpost.${parcellation_name}/connMap.mat
+
+
+connmap=$work_dir/${subj_sess_prefix}/bedpost.${parcellation_name}/connMap.mat
+out_connmap=$out_subj_dir/${subj_sess_prefix}_space-T1w_res-${seed_res}_${bids_tags}_connMap.mat
+
+if [  -e $connmap ]
+then
+ln -srfv $connmap $out_connmap
+fi
+
+if [  -e $t1w_subj ]
+then
 ln -srfv $t1w_subj $out_t1w
+fi
+
+if [ -e $t1w_seed_seg ]
+then
 ln -srfv $t1w_seed_seg $out_t1w_seed_seg
+fi
+if [ -e $t1w_target_seg ]
+then
 ln -srfv $t1w_target_seg $out_t1w_target_seg
+fi
+if [ -e $dti_parc_subj ]
+then
 ln -srfv $dti_parc_subj $out_parc
+fi
+if [ -e $dti_parc_subj_mni ]
+then
 ln -srfv $dti_parc_subj_mni $out_parc_mni
+fi
+
+if [ -e $dti_kmeans_subj ]
+then
 ln -srfv $dti_kmeans_subj $out_kmeans
+fi
+if [ -e $dti_kmeans_subj_mni ]
+then
 ln -srfv $dti_kmeans_subj_mni $out_kmeans_mni
+fi
 
+if [  -e $dti_parc_subj_normmax ]
+then
 ln -srfv $dti_parc_subj_normmax $out_parc_normmax
+fi
+if [  -e $dti_parc_subj_mni_normmax ]
+then
 ln -srfv $dti_parc_subj_mni_normmax $out_parc_mni_normmax
+fi
 
+if [  -e $paths_parc_subj ]
+then
 ln -srfv $paths_parc_subj $out_paths
-ln -srfv $paths_parc_subj_mni $out_paths_mni
+fi
 
+if [  -e $paths_parc_subj_mni ]
+then
+ln -srfv $paths_parc_subj_mni $out_paths_mni
+fi
 done #subj
 
