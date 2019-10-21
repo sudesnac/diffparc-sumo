@@ -581,6 +581,10 @@ echo "     probabilistic tracking and seed parcellation (formerly participant2 l
     $execpath/8.4_computeMaxProbDiffParcFALeftRight $work_folder $csv_folder $list
     echo $execpath/8.5_computePathsParcFALeftRight $work_folder $csv_folder $list
     $execpath/8.5_computePathsParcFALeftRight $work_folder $csv_folder $list
+    echo $execpath/8.4_computeMaxProbDiffParcDKILeftRight $work_folder $csv_folder $list
+    $execpath/8.4_computeMaxProbDiffParcDKILeftRight $work_folder $csv_folder $list
+    echo $execpath/8.5_computePathsParcDKILeftRight $work_folder $csv_folder $list
+    $execpath/8.5_computePathsParcDKILeftRight $work_folder $csv_folder $list
 
     
 
