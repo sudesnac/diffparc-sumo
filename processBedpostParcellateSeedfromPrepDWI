@@ -107,9 +107,14 @@ subj_dir=$output_dir/$subj
   echo "making ref file"
 
  #process for targets
+ if [ "$no_remap" = "1" ]
+ then
+ echo octave --eval "remapSegmentationLabels('$target_seg','$target_mapping_txt','$target_labels_txt','$targets_dir',1)"
+ octave --eval "remapSegmentationLabels('$target_seg','$target_mapping_txt','$target_labels_txt','$targets_dir',1)"
+ else
  echo octave --eval "remapSegmentationLabels('$target_seg','$target_mapping_txt','$target_labels_txt','$targets_dir')"
  octave --eval "remapSegmentationLabels('$target_seg','$target_mapping_txt','$target_labels_txt','$targets_dir')"
- 
+ fi
 targets_file=$parc_dir/targets.txt
 targets_file_resampled=$parc_dir/targets_dtires.txt
 

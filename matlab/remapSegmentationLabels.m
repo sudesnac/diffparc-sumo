@@ -1,8 +1,16 @@
-function remapSegmentationLabels( in_seg_nii, in_label_mapping, output_label_mapping, out_folder)
+function remapSegmentationLabels( in_seg_nii, in_label_mapping, output_label_mapping, out_folder, varargin)
 %Remaps segmentation labels using a label mapping text file, writing out
 %individual images and a combined label image.  The input indices, in the label
 %mapping text file are assumed to be the line numbers (1:end). 
 
+% no_remap == 1:  use the output_label_mapping to grab a single label for
+% each target, using the label number defined in the output_label_mapping
+% csv
+if (nargin>4)
+    no_remap=1;
+else
+    no_remap=0;
+end
 %in_seg_nii='~/projects/atlases/MNI152_1mm/labels/t1/HarvardOxford/HarvardOxford-cort-maxprob-thr50-1mm.nii.gz';
 %in_label_mapping='~/pipeline/cfg/labels/HarvardOxford-Cortical_withLobes.csv';
 %output_labels='~/pipeline/cfg/labels/Lobes.csv';
@@ -24,12 +32,34 @@ in_seg=load_nifti(in_seg_nii);
 out_seg=in_seg;
 out_seg.vol=zeros(size(out_seg.vol));
 
+if (no_remap ==1)
+   
+    
+for i=1:length(out_names)
+
+    tmp_seg=in_seg;
+    tmp_seg.vol=zeros(size(out_seg.vol));
+
+    
+        out_seg.vol(in_seg.vol==out_ids(i))=out_ids(i);
+        tmp_seg.vol(in_seg.vol==out_ids(i))=1;
+    
+    
+    %write out tmp_seg
+    save_nifti(tmp_seg,sprintf('%s/%s.nii.gz',out_folder,out_names{i}));
+        
+end 
+    
+else % if no_remap ==1
+    
 for i=1:length(out_names)
 
     tmp_seg=in_seg;
     tmp_seg.vol=zeros(size(out_seg.vol));
     
     ind_seg=find(in_ids==out_ids(i));
+    
+    
     for j=1:length(ind_seg)
         out_seg.vol(in_seg.vol==ind_seg(j))=out_ids(i);
         tmp_seg.vol(in_seg.vol==ind_seg(j))=1;
@@ -40,6 +70,8 @@ for i=1:length(out_names)
         
 end
 
+
+end
 %remove generation of all_segs image (unused..)
 %save_nifti(out_seg,sprintf('%s/all_segs.nii.gz',out_folder));
 
